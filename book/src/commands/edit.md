@@ -5,7 +5,7 @@ Edit an existing Architecture Decision Record.
 ## Usage
 
 ```
-adrs edit [OPTIONS] <ADR>
+cladrs edit [OPTIONS] <ADR>
 ```
 
 ## Arguments
@@ -33,7 +33,7 @@ Opens an existing ADR in your editor. The ADR can be specified by:
 ### By Number
 
 ```sh
-adrs edit 1
+cladrs edit 1
 ```
 
 Opens `0001-record-architecture-decisions.md` in your editor.
@@ -41,7 +41,7 @@ Opens `0001-record-architecture-decisions.md` in your editor.
 ### By Title
 
 ```sh
-adrs edit postgresql
+cladrs edit postgresql
 ```
 
 Finds and opens the ADR with "postgresql" in its title.
@@ -49,7 +49,7 @@ Finds and opens the ADR with "postgresql" in its title.
 ### Fuzzy Matching
 
 ```sh
-adrs edit "database"
+cladrs edit "database"
 ```
 
 Opens the best matching ADR containing "database".

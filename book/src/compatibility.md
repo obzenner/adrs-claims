@@ -110,13 +110,13 @@ We need to learn PostgreSQL administration.
 ### For a new repository
 
 ```bash
-adrs init --ng
+cladrs init --ng
 ```
 
 ### For individual commands
 
 ```bash
-adrs --ng new "My Decision"
+cladrs --ng new "My Decision"
 ```
 
 ### Via configuration

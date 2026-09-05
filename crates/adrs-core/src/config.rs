@@ -7,6 +7,12 @@ use std::path::{Path, PathBuf};
 /// Default ADR directory name.
 pub const DEFAULT_ADR_DIR: &str = "doc/adr";
 
+/// Default directory for authoritative decision event sources.
+pub const DEFAULT_DECISION_EVENTS_DIR: &str = "doc/adr-events";
+
+/// Default directory for generated decision Markdown.
+pub const DEFAULT_DECISION_RENDER_DIR: &str = "doc/adr";
+
 /// Legacy configuration file name (adr-tools compatible).
 pub const LEGACY_CONFIG_FILE: &str = ".adr-dir";
 
@@ -62,6 +68,10 @@ pub struct Config {
     /// Doctor command configuration.
     #[serde(default)]
     pub doctor: DoctorConfig,
+
+    /// Optional authoritative whole-ADR event policy.
+    #[serde(default, skip_serializing_if = "ClaimsConfig::is_disabled")]
+    pub claims: ClaimsConfig,
 }
 
 impl Default for Config {
@@ -75,6 +85,7 @@ impl Default for Config {
             generate: GenerateConfig::default(),
             export: ExportConfig::default(),
             doctor: DoctorConfig::default(),
+            claims: ClaimsConfig::default(),
         }
     }
 }
@@ -213,13 +224,14 @@ impl Config {
     /// Save configuration to the given directory.
     pub fn save(&self, root: &Path) -> Result<()> {
         match self.mode {
-            ConfigMode::Compatible => {
+            ConfigMode::Compatible if self.claims.is_disabled() => {
                 // Write legacy .adr-dir file
                 let path = root.join(LEGACY_CONFIG_FILE);
                 std::fs::write(&path, self.adr_dir.display().to_string())?;
             }
-            ConfigMode::NextGen => {
-                // Write adrs.toml
+            ConfigMode::Compatible | ConfigMode::NextGen => {
+                // Authoritative claims need TOML even when document serialization
+                // remains compatible; claims policy is orthogonal to ConfigMode.
                 let path = root.join(CONFIG_FILE);
                 let content =
                     toml::to_string_pretty(self).map_err(|e| Error::ConfigError(e.to_string()))?;
@@ -277,6 +289,9 @@ impl Config {
         }
         if !other.doctor.ignore_path.is_empty() {
             self.doctor.ignore_path = other.doctor.ignore_path.clone();
+        }
+        if !other.claims.is_disabled() {
+            self.claims = other.claims.clone();
         }
     }
 }
@@ -465,6 +480,46 @@ pub enum ConfigMode {
     /// Next-gen mode with YAML frontmatter and enhanced features.
     #[serde(rename = "ng", alias = "nextgen")]
     NextGen,
+}
+
+/// Repository policy for authoritative whole-ADR decision events.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ClaimsMode {
+    /// Existing Markdown ADR behavior.
+    #[default]
+    Disabled,
+    /// Complete validated decision events are authority; Markdown is generated.
+    Authoritative,
+}
+
+/// Locations and policy for authoritative decision events.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct ClaimsConfig {
+    pub mode: ClaimsMode,
+    pub events_dir: PathBuf,
+    pub render_dir: PathBuf,
+}
+
+impl Default for ClaimsConfig {
+    fn default() -> Self {
+        Self {
+            mode: ClaimsMode::Disabled,
+            events_dir: PathBuf::from(DEFAULT_DECISION_EVENTS_DIR),
+            render_dir: PathBuf::from(DEFAULT_DECISION_RENDER_DIR),
+        }
+    }
+}
+
+impl ClaimsConfig {
+    pub fn is_disabled(&self) -> bool {
+        self.mode == ClaimsMode::Disabled
+    }
+
+    pub fn is_authoritative(&self) -> bool {
+        self.mode == ClaimsMode::Authoritative
+    }
 }
 
 /// Template configuration.
@@ -784,6 +839,7 @@ mode = "nextgen"
             generate: GenerateConfig::default(),
             export: ExportConfig::default(),
             doctor: DoctorConfig::default(),
+            claims: ClaimsConfig::default(),
         };
 
         config.save(temp.path()).unwrap();
@@ -806,6 +862,7 @@ mode = "nextgen"
             generate: GenerateConfig::default(),
             export: ExportConfig::default(),
             doctor: DoctorConfig::default(),
+            claims: ClaimsConfig::default(),
         };
 
         config.save(temp.path()).unwrap();
@@ -833,6 +890,7 @@ mode = "nextgen"
             generate: GenerateConfig::default(),
             export: ExportConfig::default(),
             doctor: DoctorConfig::default(),
+            claims: ClaimsConfig::default(),
         };
 
         config.save(temp.path()).unwrap();
@@ -854,6 +912,7 @@ mode = "nextgen"
             generate: GenerateConfig::default(),
             export: ExportConfig::default(),
             doctor: DoctorConfig::default(),
+            claims: ClaimsConfig::default(),
         };
 
         original.save(temp.path()).unwrap();
@@ -879,6 +938,7 @@ mode = "nextgen"
             generate: GenerateConfig::default(),
             export: ExportConfig::default(),
             doctor: DoctorConfig::default(),
+            claims: ClaimsConfig::default(),
         };
 
         original.save(temp.path()).unwrap();
@@ -1390,6 +1450,7 @@ mode = "nextgen"
             generate: GenerateConfig::default(),
             export: ExportConfig::default(),
             doctor: DoctorConfig::default(),
+            claims: ClaimsConfig::default(),
         };
 
         base.merge(&other);
@@ -1773,6 +1834,7 @@ bogus = "value"
                 warnings_as_errors: true,
                 ignore_path: Vec::new(),
             },
+            claims: ClaimsConfig::default(),
         };
         original.save(temp.path()).unwrap();
 
@@ -1825,6 +1887,7 @@ custom = "templates/my-adr.md"
             generate: GenerateConfig::default(),
             export: ExportConfig::default(),
             doctor: DoctorConfig::default(),
+            claims: ClaimsConfig::default(),
         };
 
         original.save(temp.path()).unwrap();
@@ -2367,6 +2430,38 @@ reason = "false positive on this record"
         assert_eq!(
             unknown_keys,
             vec!["doctor.ignore_path.0.reason".to_string()]
+        );
+    }
+
+    #[test]
+    fn claims_config_is_disabled_and_omitted_by_default() {
+        let serialized = toml::to_string(&Config::default()).unwrap();
+        assert!(!serialized.contains("[claims]"));
+        assert_eq!(Config::default().claims.mode, ClaimsMode::Disabled);
+    }
+
+    #[test]
+    fn authoritative_claims_config_is_orthogonal_to_document_mode() {
+        let source = r#"
+mode = "compatible"
+adr_dir = "doc/adr"
+
+[claims]
+mode = "authoritative"
+events_dir = "architecture/events"
+render_dir = "architecture/rendered"
+"#;
+        let (config, unknown) = deserialize_config(source).unwrap();
+        assert!(unknown.is_empty());
+        assert_eq!(config.mode, ConfigMode::Compatible);
+        assert_eq!(config.claims.mode, ClaimsMode::Authoritative);
+        assert_eq!(
+            config.claims.events_dir,
+            PathBuf::from("architecture/events")
+        );
+        assert_eq!(
+            config.claims.render_dir,
+            PathBuf::from("architecture/rendered")
         );
     }
 }

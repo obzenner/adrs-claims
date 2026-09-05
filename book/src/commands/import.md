@@ -7,9 +7,9 @@ Import ADRs from different formats into your repository.
 Import ADRs from JSON-ADR format files.
 
 ```bash
-adrs import json exported.json              # Import to repository
-adrs import json exported.json --dry-run    # Preview without writing
-adrs import json - < exported.json          # Read from stdin
+cladrs import json exported.json              # Import to repository
+cladrs import json exported.json --dry-run    # Preview without writing
+cladrs import json - < exported.json          # Read from stdin
 ```
 
 ### Options
@@ -37,10 +37,10 @@ If your target repository has ADRs 1-5:
 
 ```bash
 # Imported ADRs become 6, 7, 8...
-adrs import json external-adrs.json --renumber
+cladrs import json external-adrs.json --renumber
 
 # Or use the --append alias for clarity
-adrs import json external-adrs.json --append
+cladrs import json external-adrs.json --append
 ```
 
 ### Example: Migration Scenario
@@ -48,7 +48,7 @@ adrs import json external-adrs.json --append
 Combine with `--dir` for migrating ADRs:
 
 ```bash
-adrs import json acquired-project.json --dir doc/adr --append
+cladrs import json acquired-project.json --dir doc/adr --append
 ```
 
 ### Preview Before Importing
@@ -56,7 +56,7 @@ adrs import json acquired-project.json --dir doc/adr --append
 Use `--dry-run` to see what would happen:
 
 ```bash
-adrs import json external.json --append --dry-run
+cladrs import json external.json --append --dry-run
 ```
 
 Output shows the renumber mapping:
@@ -86,7 +86,7 @@ Warning: ADR 7 links to ADR 5 which is not in the import set
 
 The import command accepts multiple JSON-ADR formats:
 
-**Bulk export** (from `adrs export json`):
+**Bulk export** (from `cladrs export json`):
 ```json
 {
   "version": "1.0.0",

@@ -5,7 +5,7 @@ Generate shell completions for tab-completion support.
 ## Usage
 
 ```
-adrs completions <SHELL>
+cladrs completions <SHELL>
 ```
 
 ## Arguments
@@ -30,7 +30,7 @@ adrs completions <SHELL>
 
 ```sh
 # Generate completions
-adrs completions bash > ~/.bash_completion.d/adrs
+cladrs completions bash > ~/.bash_completion.d/adrs
 
 # Add to ~/.bashrc
 source ~/.bash_completion.d/adrs
@@ -40,7 +40,7 @@ source ~/.bash_completion.d/adrs
 
 ```sh
 # Generate completions
-adrs completions zsh > ~/.zfunc/_adrs
+cladrs completions zsh > ~/.zfunc/_adrs
 
 # Add to ~/.zshrc (before compinit)
 fpath=(~/.zfunc $fpath)
@@ -51,14 +51,14 @@ autoload -Uz compinit && compinit
 
 ```sh
 # Generate completions (loaded automatically)
-adrs completions fish > ~/.config/fish/completions/adrs.fish
+cladrs completions fish > ~/.config/fish/completions/adrs.fish
 ```
 
 ### PowerShell
 
 ```powershell
 # Generate completions
-adrs completions powershell > _adrs.ps1
+cladrs completions powershell > _adrs.ps1
 
 # Add to your PowerShell profile
 . _adrs.ps1
@@ -68,7 +68,7 @@ adrs completions powershell > _adrs.ps1
 
 ```sh
 # Generate completions
-adrs completions elvish > ~/.elvish/lib/adrs.elv
+cladrs completions elvish > ~/.elvish/lib/adrs.elv
 
 # Add to ~/.elvish/rc.elv
 use adrs
@@ -84,11 +84,11 @@ adrs <TAB>
 init  new  edit  list  search  link  status  ...
 
 # Complete options
-adrs new --<TAB>
+cladrs new --<TAB>
 --format  --variant  --tags  --supersedes  --no-edit  ...
 
 # Complete formats
-adrs new --format <TAB>
+cladrs new --format <TAB>
 nygard  madr
 ```
 

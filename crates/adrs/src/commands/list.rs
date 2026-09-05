@@ -16,9 +16,9 @@ pub fn list(
     long_format: bool,
 ) -> Result<()> {
     let repo =
-        Repository::open(root).context("ADR repository not found. Run 'adrs init' first.")?;
+        Repository::open(root).context("ADR repository not found. Run 'cladrs init' first.")?;
 
-    let adrs = repo.list()?;
+    let cladrs = repo.list()?;
 
     // Parse date filters
     let since_date = parse_date_filter(&since)?;
@@ -28,7 +28,7 @@ pub fn list(
     let status_filter: Option<AdrStatus> = status_filter.map(|s| s.parse().unwrap());
 
     // Filter ADRs
-    let filtered: Vec<&Adr> = adrs
+    let filtered: Vec<&Adr> = cladrs
         .iter()
         .filter(|adr| {
             matches_filters(

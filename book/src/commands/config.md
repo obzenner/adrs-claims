@@ -5,7 +5,7 @@ Show the current configuration.
 ## Usage
 
 ```
-adrs config [OPTIONS]
+cladrs config [OPTIONS]
 ```
 
 ## Options
@@ -25,7 +25,7 @@ Displays the current configuration, including where it was loaded from.
 ### Basic Usage
 
 ```sh
-adrs config
+cladrs config
 ```
 
 Output:
@@ -42,7 +42,7 @@ Default ADR status: accepted
 ### Without Initialization
 
 ```sh
-adrs config
+cladrs config
 ```
 
 Output when no ADR repository is found:

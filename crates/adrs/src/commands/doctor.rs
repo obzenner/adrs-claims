@@ -33,7 +33,7 @@ pub fn doctor(
     }
 
     let repo =
-        Repository::open(root).context("Failed to open repository. Have you run 'adrs init'?")?;
+        Repository::open(root).context("Failed to open repository. Have you run 'cladrs init'?")?;
 
     let (report, suppressed_count, config_warnings) =
         check_all_filtered(&repo, &ignore).context("Failed to run health checks")?;

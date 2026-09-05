@@ -39,7 +39,7 @@ Download the appropriate binary from the [releases page](https://github.com/josh
 ### Using Cargo
 
 ```sh
-cargo install adrs
+cargo install cladrs
 ```
 
 ### Building from Git
@@ -69,7 +69,7 @@ docker run --rm -v $(pwd):/workspace -w /workspace ghcr.io/joshrotenberg/adrs li
 ## Verify Installation
 
 ```sh
-adrs --version
+cladrs --version
 ```
 
 ## Shell Completions
@@ -78,16 +78,16 @@ Generate shell completions for your shell:
 
 ```sh
 # Bash
-adrs completions bash > ~/.local/share/bash-completion/completions/adrs
+cladrs completions bash > ~/.local/share/bash-completion/completions/adrs
 
 # Zsh
-adrs completions zsh > ~/.zfunc/_adrs
+cladrs completions zsh > ~/.zfunc/_adrs
 
 # Fish
-adrs completions fish > ~/.config/fish/completions/adrs.fish
+cladrs completions fish > ~/.config/fish/completions/adrs.fish
 
 # PowerShell
-adrs completions powershell > $PROFILE.CurrentUserAllHosts
+cladrs completions powershell > $PROFILE.CurrentUserAllHosts
 ```
 
 Note: Shell completions require rebuilding after updating `adrs`.

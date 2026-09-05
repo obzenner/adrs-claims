@@ -28,7 +28,7 @@ present, `adrs` also reads `.adrs.toml` (same format). When both files exist,
 was picked (the same convention as unrecognized keys in the TOML). MCP
 `run_doctor` returns that same string in `config_warnings`.
 
-`adrs init --ng` writes `adrs.toml`. To use the hidden filename, create
+`cladrs init --ng` writes `adrs.toml`. To use the hidden filename, create
 `.adrs.toml` or rename `adrs.toml`; `init` never writes `.adrs.toml`.
 
 ```toml
@@ -50,7 +50,7 @@ no_edit = false
 
 # Generate command configuration
 [generate]
-# Default prefix for TOC links (used by 'adrs generate toc' if --prefix is not given)
+# Default prefix for TOC links (used by 'cladrs generate toc' if --prefix is not given)
 # Useful for CI jobs that always regenerate the TOC with the same prefix.
 # If omitted, defaults to empty string (bare filename links)
 # toc_prefix = "./"
@@ -58,7 +58,7 @@ no_edit = false
 # Export command configuration
 [export]
 # Default base URL for source_uri fields in JSON export
-# (used by 'adrs export json' if --base-url is not given)
+# (used by 'cladrs export json' if --base-url is not given)
 # If omitted, defaults to none (no source_uri fields)
 # base_url = "https://github.com/org/repo/blob/main/doc/adr"
 
@@ -69,7 +69,7 @@ no_edit = false
 # If omitted, defaults to an empty list (no rules suppressed)
 # ignore = ["ADR011"]
 
-# When true, 'adrs doctor' exits with status 1 if there are warnings, not just errors.
+# When true, 'cladrs doctor' exits with status 1 if there are warnings, not just errors.
 # '--warnings-as-errors' on the command line ORs with this setting.
 # If omitted, defaults to false
 # warnings_as_errors = false
@@ -94,6 +94,45 @@ variant = "full"
 # custom = "templates/custom.md"
 ```
 
+## Authoritative whole-ADR events
+
+Claims policy is independent of `mode`. Enable the closed event model with:
+
+```toml
+mode = "nextgen"
+adr_dir = "doc/adr"
+
+[claims]
+mode = "authoritative"
+events_dir = "doc/adr-events"
+render_dir = "doc/adr"
+```
+
+Or initialize those directories and configuration explicitly:
+
+```sh
+cladrs init --authoritative
+```
+
+Each `*.adr.yaml` file in `events_dir` is one complete
+`adrs.decision/v1` event. Unknown fields, unsupported entries, stale claim
+digests, invalid references, and historically inapplicable effects stop the
+fold. Markdown in `render_dir` is generated output and is never read as
+authority.
+
+```sh
+cladrs schema decision-event/v1
+cladrs validate
+cladrs fold --format json
+cladrs render
+cladrs render --check
+cladrs list --long
+cladrs doctor
+```
+
+`cladrs doctor` validates both the event history and generated Markdown in
+this mode. Legacy mutation commands refuse to edit generated Markdown.
+
 ## Global Configuration
 
 Create `~/.config/adrs/config.toml` for user-wide defaults:
@@ -116,13 +155,13 @@ Project configuration overrides global configuration.
 |----------|-------------|
 | `ADR_DIRECTORY` | Override the ADR directory path |
 | `ADRS_CONFIG` | Path to a specific configuration file |
-| `EDITOR` | Editor to use for `adrs new` and `adrs edit` |
+| `EDITOR` | Editor to use for `cladrs new` and `cladrs edit` |
 
 Example:
 
 ```sh
 export ADR_DIRECTORY="decisions"
-adrs new "Use Redis for caching"
+cladrs new "Use Redis for caching"
 ```
 
 ## Configuration Discovery
@@ -165,7 +204,7 @@ mode = "nextgen"
 ## Show Current Configuration
 
 ```sh
-adrs config
+cladrs config
 ```
 
 Output:

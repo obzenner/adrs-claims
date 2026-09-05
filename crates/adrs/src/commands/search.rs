@@ -14,9 +14,9 @@ pub fn search(
     case_sensitive: bool,
 ) -> Result<()> {
     let repo =
-        Repository::open(root).context("ADR repository not found. Run 'adrs init' first.")?;
+        Repository::open(root).context("ADR repository not found. Run 'cladrs init' first.")?;
 
-    let adrs = repo.list()?;
+    let cladrs = repo.list()?;
 
     // Parse status filter
     let status_filter: Option<AdrStatus> = status_filter.map(|s| s.parse().unwrap());
@@ -30,7 +30,7 @@ pub fn search(
 
     let mut found_any = false;
 
-    for adr in adrs {
+    for adr in cladrs {
         // Apply status filter
         if let Some(ref filter_status) = status_filter
             && !status_matches(&adr.status, filter_status)

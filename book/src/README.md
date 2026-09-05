@@ -39,13 +39,13 @@ brew install adrs
 Using Cargo:
 
 ```sh
-cargo install adrs
+cargo install cladrs
 ```
 
 ### Initialize a Repository
 
 ```sh
-adrs init
+cladrs init
 ```
 
 This creates:
@@ -56,7 +56,7 @@ This creates:
 ### Create a New ADR
 
 ```sh
-adrs new "Use PostgreSQL for persistence"
+cladrs new "Use PostgreSQL for persistence"
 ```
 
 This opens your editor with a new ADR from the default template. Save and close to create the record.
@@ -64,13 +64,13 @@ This opens your editor with a new ADR from the default template. Save and close 
 ### List ADRs
 
 ```sh
-adrs list
+cladrs list
 ```
 
 ### Link ADRs
 
 ```sh
-adrs link 2 "Amends" 1 "Amended by"
+cladrs link 2 "Amends" 1 "Amended by"
 ```
 
 ## Migration from adr-tools

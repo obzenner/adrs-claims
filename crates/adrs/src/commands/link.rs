@@ -12,7 +12,7 @@ pub fn link(
     reverse_kind: Option<&str>,
 ) -> Result<()> {
     let repo =
-        Repository::open(root).context("ADR repository not found. Run 'adrs init' first.")?;
+        Repository::open(root).context("ADR repository not found. Run 'cladrs init' first.")?;
 
     let source_kind: LinkKind = link_kind.parse().unwrap_or(LinkKind::RelatesTo);
     let target_kind: LinkKind = match reverse_kind {

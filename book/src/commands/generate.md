@@ -5,7 +5,7 @@ Generate documentation from ADRs.
 ## Usage
 
 ```
-adrs generate <SUBCOMMAND>
+cladrs generate <SUBCOMMAND>
 ```
 
 ## Subcommands
@@ -25,7 +25,7 @@ Generate a markdown table of contents to stdout.
 ### Usage
 
 ```
-adrs generate toc [OPTIONS]
+cladrs generate toc [OPTIONS]
 ```
 
 ### Options
@@ -45,7 +45,7 @@ adrs generate toc [OPTIONS]
 #### Basic Table of Contents
 
 ```sh
-adrs generate toc
+cladrs generate toc
 ```
 
 Output:
@@ -59,7 +59,7 @@ Output:
 #### Ordered List
 
 ```sh
-adrs generate toc --ordered
+cladrs generate toc --ordered
 ```
 
 Output:
@@ -73,19 +73,19 @@ Output:
 #### Save to File
 
 ```sh
-adrs generate toc > doc/adr/README.md
+cladrs generate toc > doc/adr/README.md
 ```
 
 #### With Intro and Outro Files
 
 ```sh
-adrs generate toc -i intro.md -O outro.md > doc/adr/README.md
+cladrs generate toc -i intro.md -O outro.md > doc/adr/README.md
 ```
 
 #### Link Prefix for Wikis
 
 ```sh
-adrs generate toc -p "wiki/adr/"
+cladrs generate toc -p "wiki/adr/"
 ```
 
 #### Configuring a Default Prefix
@@ -97,7 +97,7 @@ Instead of passing `--prefix` on every invocation, set it once in `adrs.toml`:
 toc_prefix = "./"
 ```
 
-Then `adrs generate toc` (with no `--prefix`) will apply `"./"` automatically.
+Then `cladrs generate toc` (with no `--prefix`) will apply `"./"` automatically.
 The `--prefix` CLI flag overrides this config value when provided.
 
 ---
@@ -109,7 +109,7 @@ Generate a Graphviz DOT graph showing ADR relationships.
 ### Usage
 
 ```
-adrs generate graph [OPTIONS]
+cladrs generate graph [OPTIONS]
 ```
 
 ### Options
@@ -127,7 +127,7 @@ adrs generate graph [OPTIONS]
 #### Basic Graph
 
 ```sh
-adrs generate graph
+cladrs generate graph
 ```
 
 Output:
@@ -149,7 +149,7 @@ digraph {
 #### Save to File
 
 ```sh
-adrs generate graph > doc/adr/graph.dot
+cladrs generate graph > doc/adr/graph.dot
 ```
 
 #### Render as PNG
@@ -157,19 +157,19 @@ adrs generate graph > doc/adr/graph.dot
 Using Graphviz:
 
 ```sh
-adrs generate graph | dot -Tpng -o doc/adr/graph.png
+cladrs generate graph | dot -Tpng -o doc/adr/graph.png
 ```
 
 #### Render as SVG
 
 ```sh
-adrs generate graph | dot -Tsvg -o doc/adr/graph.svg
+cladrs generate graph | dot -Tsvg -o doc/adr/graph.svg
 ```
 
 #### HTML Links with Custom Extension
 
 ```sh
-adrs generate graph -e html -p "/docs/adr/"
+cladrs generate graph -e html -p "/docs/adr/"
 ```
 
 ### Graph Features
@@ -188,7 +188,7 @@ Generate an mdbook from your ADRs.
 ### Usage
 
 ```
-adrs generate book [OPTIONS]
+cladrs generate book [OPTIONS]
 ```
 
 ### Options
@@ -207,7 +207,7 @@ adrs generate book [OPTIONS]
 #### Basic Book
 
 ```sh
-adrs generate book
+cladrs generate book
 ```
 
 This creates a `book/` directory with:
@@ -218,13 +218,13 @@ This creates a `book/` directory with:
 #### Custom Output Directory
 
 ```sh
-adrs generate book -o docs/decisions
+cladrs generate book -o docs/decisions
 ```
 
 #### Custom Title and Description
 
 ```sh
-adrs generate book -t "Project Architecture" -d "Key decisions for the project"
+cladrs generate book -t "Project Architecture" -d "Key decisions for the project"
 ```
 
 #### Build and Serve
@@ -232,7 +232,7 @@ adrs generate book -t "Project Architecture" -d "Key decisions for the project"
 After generating:
 
 ```sh
-adrs generate book
+cladrs generate book
 cd book
 mdbook serve
 ```
@@ -244,7 +244,7 @@ Generate and deploy the book automatically:
 ```yaml
 - name: Generate ADR book
   run: |
-    adrs generate book
+    cladrs generate book
     cd book && mdbook build
 
 - name: Deploy to GitHub Pages

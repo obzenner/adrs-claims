@@ -6,7 +6,7 @@ use std::path::Path;
 
 /// Export ADRs to JSON-ADR format.
 ///
-/// If `dir` is provided, exports from that directory without requiring an adrs repository.
+/// If `dir` is provided, exports from that directory without requiring an cladrs repository.
 /// Otherwise, exports from the repository at `root`.
 ///
 /// Options:

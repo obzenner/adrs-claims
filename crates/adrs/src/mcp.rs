@@ -295,7 +295,7 @@ pub struct SuggestTagsParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub struct InitRepositoryParams {
     /// Initialize in NextGen mode (adrs.toml config, YAML frontmatter) instead
-    /// of compatible mode (.adr-dir config). Equivalent to `adrs --ng init`.
+    /// of compatible mode (.adr-dir config). Equivalent to `cladrs --ng init`.
     #[serde(default)]
     #[schemars(
         description = "Initialize in NextGen mode (adrs.toml, YAML frontmatter) instead of compatible mode (.adr-dir). Defaults to false."
@@ -470,7 +470,7 @@ struct DoctorResult {
     warning_count: usize,
     info_count: usize,
     issues: Vec<DoctorIssue>,
-    /// Non-fatal config diagnostics (same strings CLI `adrs doctor` prints as
+    /// Non-fatal config diagnostics (same strings CLI `cladrs doctor` prints as
     /// `warning:` on stderr), e.g. dual `adrs.toml` / `.adrs.toml`.
     config_warnings: Vec<String>,
 }
@@ -692,7 +692,7 @@ fn build_router_with_access(root: PathBuf, read_only: bool) -> McpRouter {
         read_only,
         state,
         "init_repository",
-        "Initialize an ADR repository at the directory the server is bound to (its current working directory or -C path). Use this when repository tools report the repository is not initialized. Set nextgen=true for NextGen mode (adrs.toml, YAML frontmatter); omit or false for compatible mode (.adr-dir). Optionally set adr_dir (relative to the root, default doc/adr). Operates only on the bound root, does not create parent directories, and is idempotent like CLI `adrs init`: an existing matching config (adrs.toml, .adrs.toml, or .adr-dir) is left in place. Returns the mode, config path, ADR directory, and initial ADR path.",
+        "Initialize an ADR repository at the directory the server is bound to (its current working directory or -C path). Use this when repository tools report the repository is not initialized. Set nextgen=true for NextGen mode (adrs.toml, YAML frontmatter); omit or false for compatible mode (.adr-dir). Optionally set adr_dir (relative to the root, default doc/adr). Operates only on the bound root, does not create parent directories, and is idempotent like CLI `cladrs init`: an existing matching config (adrs.toml, .adrs.toml, or .adr-dir) is left in place. Returns the mode, config path, ADR directory, and initial ADR path.",
         InitRepositoryParams,
         init_repository_impl
     );
@@ -758,7 +758,7 @@ fn build_router_with_access(root: PathBuf, read_only: bool) -> McpRouter {
     );
 
     let mut router = McpRouter::new()
-        .server_info("adrs", env!("CARGO_PKG_VERSION"))
+        .server_info("cladrs", env!("CARGO_PKG_VERSION"))
         .auto_instructions();
 
     for tool in [
@@ -806,7 +806,7 @@ fn search_section_matches(text: &str, query_normalized: &str, case_sensitive: bo
 impl AdrState {
     fn list_adrs_impl(&self, params: ListAdrsParams) -> Result<String, String> {
         let repo = self.open_repo()?;
-        let adrs = repo.list().map_err(|e| e.to_string())?;
+        let cladrs = repo.list().map_err(|e| e.to_string())?;
 
         // Parse date filters
         let since_date: Option<Date> = match &params.since {
@@ -825,7 +825,7 @@ impl AdrState {
             None => None,
         };
 
-        let summaries: Vec<AdrSummary> = adrs
+        let summaries: Vec<AdrSummary> = cladrs
             .iter()
             .filter(|adr| {
                 // Status filter (case-insensitive)
@@ -912,7 +912,7 @@ impl AdrState {
 
     fn search_adrs_impl(&self, params: SearchAdrsParams) -> Result<String, String> {
         let repo = self.open_repo()?;
-        let adrs = repo.list().map_err(|e| e.to_string())?;
+        let cladrs = repo.list().map_err(|e| e.to_string())?;
 
         let case_sensitive = params.case_sensitive.unwrap_or(false);
         let title_only = params.title_only.unwrap_or(false);
@@ -926,7 +926,7 @@ impl AdrState {
 
         let mut results: Vec<SearchResult> = Vec::new();
 
-        for adr in &adrs {
+        for adr in &cladrs {
             // Apply status filter (case-insensitive)
             if let Some(ref status) = params.status
                 && adr.status.to_string().to_lowercase() != status.to_lowercase()
@@ -1074,7 +1074,7 @@ impl AdrState {
         let initial_adr_path = repo
             .list()
             .ok()
-            .and_then(|adrs| adrs.into_iter().min_by_key(|a| a.number))
+            .and_then(|cladrs| cladrs.into_iter().min_by_key(|a| a.number))
             .map(|adr| adr_path.join(adr.filename()).display().to_string());
 
         #[derive(Serialize)]
@@ -1196,7 +1196,7 @@ impl AdrState {
             } else {
                 warnings.push(
                     "Tags ignored: repository is not in NextGen mode. \
-                     Use 'adrs --ng init' to enable NextGen mode."
+                     Use 'cladrs --ng init' to enable NextGen mode."
                         .to_string(),
                 );
             }
@@ -1360,7 +1360,9 @@ impl AdrState {
         let repo = self.open_repo()?;
 
         if !repo.config().is_next_gen() {
-            return Err("Tags require NextGen mode. Initialize with 'adrs --ng init'.".to_string());
+            return Err(
+                "Tags require NextGen mode. Initialize with 'cladrs --ng init'.".to_string(),
+            );
         }
 
         let mut adr = repo.get(params.number).map_err(|e| e.to_string())?;
@@ -1397,7 +1399,7 @@ impl AdrState {
 
     fn get_repository_info_impl(&self) -> Result<String, String> {
         let repo = self.open_repo()?;
-        let adrs = repo.list().map_err(|e| e.to_string())?;
+        let cladrs = repo.list().map_err(|e| e.to_string())?;
         let config = repo.config();
 
         #[derive(Serialize)]
@@ -1425,7 +1427,7 @@ impl AdrState {
             other: 0,
         };
 
-        for adr in &adrs {
+        for adr in &cladrs {
             match adr.status.to_string().to_lowercase().as_str() {
                 "proposed" => counts.proposed += 1,
                 "accepted" => counts.accepted += 1,
@@ -1441,7 +1443,7 @@ impl AdrState {
             } else {
                 "compatible".to_string()
             },
-            adr_count: adrs.len(),
+            adr_count: cladrs.len(),
             adr_directory: config.adr_dir.display().to_string(),
             statuses: counts,
         };
@@ -2052,7 +2054,7 @@ mod tests {
     async fn test_initialize_returns_server_info() {
         let (client, _tmp) = setup_client(false).await;
         let info = client.server_info().await.unwrap();
-        assert_eq!(info.server_info.name, "adrs");
+        assert_eq!(info.server_info.name, "cladrs");
         assert!(info.capabilities.tools.is_some());
     }
 
@@ -2123,10 +2125,10 @@ mod tests {
         let (client, _tmp) = setup_client(false).await;
         let result = client.call_tool_text("list_adrs", json!({})).await.unwrap();
 
-        let adrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
-        assert_eq!(adrs.len(), 1);
-        assert_eq!(adrs[0].number, 1);
-        assert_eq!(adrs[0].status, "Accepted");
+        let cladrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
+        assert_eq!(cladrs.len(), 1);
+        assert_eq!(cladrs[0].number, 1);
+        assert_eq!(cladrs[0].status, "Accepted");
     }
 
     #[tokio::test]
@@ -2780,8 +2782,8 @@ Confirm via tests.
             .call_tool_text("list_adrs", json!({"tag": "api"}))
             .await
             .unwrap();
-        let adrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
-        assert!(adrs.iter().any(|a| a.number == 2));
+        let cladrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
+        assert!(cladrs.iter().any(|a| a.number == 2));
     }
 
     #[tokio::test]
@@ -2895,18 +2897,18 @@ Confirm via tests.
             .call_tool_text("list_adrs", json!({"status": "accepted"}))
             .await
             .unwrap();
-        let adrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
-        assert_eq!(adrs.len(), 1);
-        assert_eq!(adrs[0].number, 1);
+        let cladrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
+        assert_eq!(cladrs.len(), 1);
+        assert_eq!(cladrs[0].number, 1);
 
         // Filter for proposed (only the new one)
         let result = client
             .call_tool_text("list_adrs", json!({"status": "proposed"}))
             .await
             .unwrap();
-        let adrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
-        assert_eq!(adrs.len(), 1);
-        assert_eq!(adrs[0].number, 2);
+        let cladrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
+        assert_eq!(cladrs.len(), 1);
+        assert_eq!(cladrs[0].number, 2);
     }
 
     #[tokio::test]
@@ -3136,9 +3138,9 @@ Confirm via tests.
             .call_tool_text("list_adrs", json!({"tag": "api"}))
             .await
             .unwrap();
-        let adrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
+        let cladrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
         assert!(
-            adrs.iter().any(|a| a.number == 2),
+            cladrs.iter().any(|a| a.number == 2),
             "ADR #2 should appear when filtering by tag 'api'"
         );
     }
@@ -3262,8 +3264,8 @@ Confirm via tests.
             .call_tool_text("list_adrs", json!({"since": "2099-01-01"}))
             .await
             .unwrap();
-        let adrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
-        assert_eq!(adrs.len(), 0, "no ADRs should be on or after 2099-01-01");
+        let cladrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
+        assert_eq!(cladrs.len(), 0, "no ADRs should be on or after 2099-01-01");
     }
 
     #[tokio::test]
@@ -3274,8 +3276,8 @@ Confirm via tests.
             .call_tool_text("list_adrs", json!({"until": "2000-01-01"}))
             .await
             .unwrap();
-        let adrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
-        assert_eq!(adrs.len(), 0, "no ADRs should be on or before 2000-01-01");
+        let cladrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
+        assert_eq!(cladrs.len(), 0, "no ADRs should be on or before 2000-01-01");
     }
 
     #[tokio::test]
@@ -3299,9 +3301,9 @@ Confirm via tests.
             .call_tool_text("list_adrs", json!({"decider": "alice"}))
             .await
             .unwrap();
-        let adrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
+        let cladrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
         assert!(
-            adrs.iter().any(|a| a.number == 2),
+            cladrs.iter().any(|a| a.number == 2),
             "should find ADR #2 with decider 'alice'"
         );
 
@@ -3310,8 +3312,8 @@ Confirm via tests.
             .call_tool_text("list_adrs", json!({"decider": "charlie"}))
             .await
             .unwrap();
-        let adrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
-        assert_eq!(adrs.len(), 0, "no ADRs with decider 'charlie'");
+        let cladrs: Vec<AdrSummary> = serde_json::from_str(&result).unwrap();
+        assert_eq!(cladrs.len(), 0, "no ADRs with decider 'charlie'");
     }
 
     #[tokio::test]
@@ -3549,13 +3551,13 @@ Confirm via tests.
             .unwrap();
 
         let export: serde_json::Value = serde_json::from_str(&result).unwrap();
-        let adrs = export["adrs"].as_array().unwrap();
+        let cladrs = export["adrs"].as_array().unwrap();
         assert!(
-            !adrs.is_empty(),
+            !cladrs.is_empty(),
             "export should contain at least the init ADR"
         );
-        assert!(adrs[0]["number"].is_number());
-        assert!(adrs[0]["title"].is_string());
+        assert!(cladrs[0]["number"].is_number());
+        assert!(cladrs[0]["title"].is_string());
     }
 
     #[tokio::test]
@@ -3578,9 +3580,9 @@ Confirm via tests.
             .unwrap();
 
         let export: serde_json::Value = serde_json::from_str(&result).unwrap();
-        let adrs = export["adrs"].as_array().unwrap();
-        assert_eq!(adrs.len(), 1, "should export exactly 1 ADR");
-        assert_eq!(adrs[0]["number"].as_u64().unwrap(), 2);
+        let cladrs = export["adrs"].as_array().unwrap();
+        assert_eq!(cladrs.len(), 1, "should export exactly 1 ADR");
+        assert_eq!(cladrs[0]["number"].as_u64().unwrap(), 2);
     }
 
     #[tokio::test]
@@ -3605,9 +3607,9 @@ Confirm via tests.
             .unwrap();
 
         let export: serde_json::Value = serde_json::from_str(&result).unwrap();
-        let adrs = export["adrs"].as_array().unwrap();
+        let cladrs = export["adrs"].as_array().unwrap();
         // Find ADR #2
-        let adr2 = adrs
+        let adr2 = cladrs
             .iter()
             .find(|a| a["number"].as_u64() == Some(2))
             .unwrap();
@@ -3699,11 +3701,11 @@ Confirm via tests.
             "initial ADR path should exist: {initial}"
         );
 
-        let adrs: Vec<AdrSummary> =
+        let cladrs: Vec<AdrSummary> =
             serde_json::from_str(&client.call_tool_text("list_adrs", json!({})).await.unwrap())
                 .unwrap();
-        assert_eq!(adrs.len(), 1);
-        assert_eq!(adrs[0].number, 1);
+        assert_eq!(cladrs.len(), 1);
+        assert_eq!(cladrs[0].number, 1);
     }
 
     #[tokio::test]
@@ -3760,7 +3762,7 @@ Confirm via tests.
 
         let config_before = std::fs::read_to_string(temp.path().join(".adr-dir")).unwrap();
 
-        // Same as CLI `adrs init`: a second call succeeds and leaves a matching
+        // Same as CLI `cladrs init`: a second call succeeds and leaves a matching
         // config in place. `nextgen` does not convert `.adr-dir` into `adrs.toml`.
         let repeat = client
             .call_tool_text("init_repository", json!({"nextgen": true}))

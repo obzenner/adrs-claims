@@ -148,8 +148,8 @@ We will confirm this decision after the first production deployment.
 ### Per-command
 
 ```sh
-adrs new --format madr "Use PostgreSQL"
-adrs new --format nygard "Use PostgreSQL"
+cladrs new --format madr "Use PostgreSQL"
+cladrs new --format nygard "Use PostgreSQL"
 ```
 
 ### In Configuration
@@ -171,7 +171,7 @@ Both formats support four variants:
 | `bare-minimal` | Core sections only, empty content |
 
 ```sh
-adrs new --format madr --variant minimal "Use PostgreSQL"
+cladrs new --format madr --variant minimal "Use PostgreSQL"
 ```
 
 See [Templates](./templates.md) for more details.

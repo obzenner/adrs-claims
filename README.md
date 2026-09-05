@@ -32,7 +32,7 @@ brew install adrs
 ### Cargo
 
 ```sh
-cargo install adrs
+cargo install cladrs
 ```
 
 ### Docker
@@ -49,16 +49,16 @@ Download from [GitHub Releases](https://github.com/joshrotenberg/adrs/releases).
 
 ```sh
 # Initialize a new ADR repository
-adrs init
+cladrs init
 
 # Create your first decision
-adrs new "Use PostgreSQL for persistence"
+cladrs new "Use PostgreSQL for persistence"
 
 # List all ADRs
-adrs list
+cladrs list
 
 # Check repository health
-adrs doctor
+cladrs doctor
 ```
 
 ## Usage
@@ -97,62 +97,62 @@ Options:
 
 ```sh
 # Classic Nygard format (default)
-adrs new "Use REST API"
+cladrs new "Use REST API"
 
 # MADR 4.0.0 format
-adrs new --format madr "Use GraphQL"
+cladrs new --format madr "Use GraphQL"
 
 # Minimal template
-adrs new --variant minimal "Quick decision"
+cladrs new --variant minimal "Quick decision"
 
 # With tags (NextGen mode)
-adrs --ng new --tags security,api "Use JWT for authentication"
+cladrs --ng new --tags security,api "Use JWT for authentication"
 ```
 
 ### Search and filter
 
 ```sh
 # Full-text search
-adrs search postgres
+cladrs search postgres
 
 # Filter by status
-adrs list --status accepted
+cladrs list --status accepted
 
 # Filter by tag (NextGen mode)
-adrs --ng list --tag security
+cladrs --ng list --tag security
 ```
 
 ### Supersede and link decisions
 
 ```sh
 # Supersede an existing ADR
-adrs new --supersedes 2 "Use MySQL instead"
+cladrs new --supersedes 2 "Use MySQL instead"
 
 # Link related ADRs (auto-derives reverse link)
-adrs link 3 Amends 1
+cladrs link 3 Amends 1
 ```
 
 ### Generate documentation
 
 ```sh
 # Table of contents
-adrs generate toc > doc/adr/README.md
+cladrs generate toc > doc/adr/README.md
 
 # Graphviz dependency graph
-adrs generate graph | dot -Tsvg > doc/adr/graph.svg
+cladrs generate graph | dot -Tsvg > doc/adr/graph.svg
 
 # mdbook
-adrs generate book && cd book && mdbook serve
+cladrs generate book && cd book && mdbook serve
 ```
 
 ### Import/Export
 
 ```sh
 # Export to JSON-ADR format
-adrs export json > decisions.json
+cladrs export json > decisions.json
 
 # Import from another repository
-adrs import json decisions.json --renumber
+cladrs import json decisions.json --renumber
 ```
 
 ## MCP Server (AI Integration)

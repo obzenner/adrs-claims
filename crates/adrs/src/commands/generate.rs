@@ -15,8 +15,8 @@ pub fn generate_toc(
     config_prefix: Option<String>,
 ) -> Result<()> {
     let repo =
-        Repository::open(root).context("ADR repository not found. Run 'adrs init' first.")?;
-    let adrs = repo.list()?;
+        Repository::open(root).context("ADR repository not found. Run 'cladrs init' first.")?;
+    let cladrs = repo.list()?;
 
     // Print intro if provided
     if let Some(intro_path) = intro {
@@ -28,7 +28,7 @@ pub fn generate_toc(
     // Print TOC
     // Precedence: --prefix CLI flag > generate.toc_prefix config > built-in default (empty)
     let prefix = prefix.or(config_prefix).unwrap_or_default();
-    for (i, adr) in adrs.iter().enumerate() {
+    for (i, adr) in cladrs.iter().enumerate() {
         let bullet = if ordered {
             format!("{}.", i + 1)
         } else {
@@ -56,8 +56,8 @@ pub fn generate_toc(
 /// Generate a Graphviz graph.
 pub fn generate_graph(root: &Path, prefix: Option<String>, extension: &str) -> Result<()> {
     let repo =
-        Repository::open(root).context("ADR repository not found. Run 'adrs init' first.")?;
-    let adrs = repo.list()?;
+        Repository::open(root).context("ADR repository not found. Run 'cladrs init' first.")?;
+    let cladrs = repo.list()?;
 
     let prefix = prefix.unwrap_or_default();
 
@@ -65,7 +65,7 @@ pub fn generate_graph(root: &Path, prefix: Option<String>, extension: &str) -> R
     println!("  node [shape=plaintext];");
 
     // Create nodes
-    for adr in &adrs {
+    for adr in &cladrs {
         let filename = adr
             .link_filename()
             .replace(".md", &format!(".{}", extension));
@@ -80,13 +80,13 @@ pub fn generate_graph(root: &Path, prefix: Option<String>, extension: &str) -> R
 
     // Create sequential edges (dotted)
     println!("  edge [style=dotted, weight=10];");
-    for window in adrs.windows(2) {
+    for window in cladrs.windows(2) {
         println!("  _{} -> _{};", window[0].number, window[1].number);
     }
 
     // Create relationship edges
     println!("  edge [style=solid, weight=1];");
-    for adr in &adrs {
+    for adr in &cladrs {
         for link in &adr.links {
             println!(
                 "  _{} -> _{} [label=\"{}\"];",
@@ -108,8 +108,8 @@ pub fn generate_book(
     description: Option<String>,
 ) -> Result<()> {
     let repo =
-        Repository::open(root).context("ADR repository not found. Run 'adrs init' first.")?;
-    let adrs = repo.list()?;
+        Repository::open(root).context("ADR repository not found. Run 'cladrs init' first.")?;
+    let cladrs = repo.list()?;
 
     let title = title.unwrap_or_else(|| "Architecture Decision Records".to_string());
     let description =
@@ -137,7 +137,7 @@ build-dir = "book"
 
     // Create SUMMARY.md
     let mut summary = String::from("# Summary\n\n");
-    for adr in &adrs {
+    for adr in &cladrs {
         // Link and copy destination must both use the on-disk filename,
         // which can differ from the title-derived one (renamed files,
         // older slug schemes).

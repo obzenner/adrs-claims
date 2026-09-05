@@ -6,7 +6,7 @@ use std::path::Path;
 
 /// Import ADRs from JSON-ADR format.
 ///
-/// If `dir` is provided, imports to that directory without requiring an adrs repository.
+/// If `dir` is provided, imports to that directory without requiring an cladrs repository.
 /// Otherwise, imports to the repository at `root`.
 pub fn import_json(
     root: &Path,

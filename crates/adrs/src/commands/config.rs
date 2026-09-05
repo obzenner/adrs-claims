@@ -24,6 +24,17 @@ pub fn config_with_discovery(start_dir: &Path, discovered: Option<DiscoveredConf
                 disc.root.join(&disc.config.adr_dir).display()
             );
             println!("Mode: {:?}", disc.config.mode);
+            println!("Claims mode: {:?}", disc.config.claims.mode);
+            if disc.config.claims.mode == adrs_core::ClaimsMode::Authoritative {
+                println!(
+                    "Decision events: {}",
+                    disc.root.join(&disc.config.claims.events_dir).display()
+                );
+                println!(
+                    "Generated Markdown: {}",
+                    disc.root.join(&disc.config.claims.render_dir).display()
+                );
+            }
             if let Some(ref default_status) = disc.config.default_status {
                 println!("Default ADR status: {}", default_status);
             }
@@ -44,7 +55,7 @@ pub fn config_with_discovery(start_dir: &Path, discovered: Option<DiscoveredConf
             println!("No ADR repository found.");
             println!("Search started from: {}", start_dir.display());
             println!();
-            println!("Run 'adrs init' to create a new repository.");
+            println!("Run 'cladrs init' to create a new repository.");
         }
     }
 

@@ -1,5 +1,5 @@
 [package]
-name = "adrs"
+name = "cladrs"
 description = "Command line tool for managing Architecture Decision Records"
 version.workspace = true
 authors.workspace = true
@@ -16,7 +16,7 @@ keywords = ["adr", "architecture", "decision-records", "madr", "cli"]
 categories = ["command-line-utilities", "development-tools"]
 
 [[bin]]
-name = "adrs"
+name = "cladrs"
 path = "src/main.rs"
 
 [features]

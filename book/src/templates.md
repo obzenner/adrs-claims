@@ -26,16 +26,16 @@ Each format has four variants:
 
 ```sh
 # Default: nygard format, full variant
-adrs new "My Decision"
+cladrs new "My Decision"
 
 # MADR format, full variant
-adrs new --format madr "My Decision"
+cladrs new --format madr "My Decision"
 
 # Nygard format, minimal variant
-adrs new --variant minimal "My Decision"
+cladrs new --variant minimal "My Decision"
 
 # MADR format, bare variant
-adrs new --format madr --variant bare "My Decision"
+cladrs new --format madr --variant bare "My Decision"
 ```
 
 ### Template Examples
@@ -107,7 +107,7 @@ Custom templates can be set in two ways:
 1. **Per-invocation via CLI flag** -- highest precedence, overrides config and built-in formats:
 
    ```sh
-   adrs new --template ./templates/security-adr.md "My Decision"
+   cladrs new --template ./templates/security-adr.md "My Decision"
    ```
 
 2. **Project-wide via `adrs.toml`** -- applied when no CLI `--format`/`--variant`/`--template` is given:

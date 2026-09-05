@@ -9,29 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
-name = "adrs"
-version = "0.12.1"
-dependencies = [
- "adrs-core",
- "anyhow",
- "assert_cmd",
- "assert_fs",
- "clap",
- "clap_complete",
- "edit",
- "predicates",
- "schemars",
- "serde",
- "serde_json",
- "serial_test",
- "tempfile",
- "time",
- "tokio",
- "tower-mcp",
- "whoami",
-]
-
-[[package]]
 name = "adrs-core"
 version = "0.12.1"
 dependencies = [
@@ -43,10 +20,12 @@ dependencies = [
  "proptest",
  "pulldown-cmark 0.13.4",
  "regex",
+ "schemars",
  "serde",
  "serde_ignored",
  "serde_json",
  "serde_yaml_neo",
+ "sha2",
  "tempfile",
  "test-case",
  "thiserror 2.0.18",
@@ -330,6 +309,29 @@ dependencies = [
  "iana-time-zone",
  "num-traits",
  "windows-link",
+]
+
+[[package]]
+name = "cladrs"
+version = "0.12.1"
+dependencies = [
+ "adrs-core",
+ "anyhow",
+ "assert_cmd",
+ "assert_fs",
+ "clap",
+ "clap_complete",
+ "edit",
+ "predicates",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "tempfile",
+ "time",
+ "tokio",
+ "tower-mcp",
+ "whoami",
 ]
 
 [[package]]
