@@ -6,7 +6,7 @@ use std::path::Path;
 
 pub fn edit(root: &Path, query: &str) -> Result<()> {
     let repo =
-        Repository::open(root).context("ADR repository not found. Run 'adrs init' first.")?;
+        Repository::open(root).context("ADR repository not found. Run 'cladrs init' first.")?;
 
     let adr = repo.find(query).context("ADR not found")?;
     let path = adr

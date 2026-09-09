@@ -1,5 +1,13 @@
 //! CLI integration tests for the adrs binary.
 
+use adrs_core::decision::{
+    ClaimDeclarationV1, ClaimEffectV1, ConsequenceV1, ConsequencesV1, ContextV1, DecisionDriverV1,
+    DecisionEvent, DecisionEventV1, DecisionOptionV1, DecisionOutcomeV1, DecisionSourceV1,
+    DriverAssessment, DriverPriority, GovernanceActorV1, GovernanceStatus, GovernanceV1,
+    LimitationV1, NamedStatementV1, OptionDisposition, OptionReasonV1, RelationshipsV1,
+    VerificationExpectedV1, VerificationMethodV1, VerificationObligationV1, VerificationPlanV1,
+    statement_digest,
+};
 use assert_cmd::{Command, cargo_bin_cmd};
 use assert_fs::prelude::*;
 use predicates::prelude::*;
@@ -7,7 +15,7 @@ use std::fs;
 
 /// Get a command for the adrs binary.
 fn adrs() -> Command {
-    cargo_bin_cmd!("adrs")
+    cargo_bin_cmd!("cladrs")
 }
 
 // ============================================================================
@@ -1247,7 +1255,7 @@ fn test_completions_zsh() {
         .args(["completions", "zsh"])
         .assert()
         .success()
-        .stdout(predicate::str::contains("#compdef adrs"));
+        .stdout(predicate::str::contains("#compdef cladrs"));
 }
 
 #[test]
@@ -3213,4 +3221,251 @@ fn test_config_reports_a_config_file_that_fails_to_load() {
             .success()
             .stderr(predicate::str::contains(expected));
     }
+}
+
+fn authoritative_fixture_event() -> DecisionEvent {
+    let statement = "The complete decision event is authoritative";
+    DecisionEvent::V1(DecisionEventV1 {
+        id: "ADR-0001".into(),
+        sequence: 1,
+        title: "Record complete decision events".into(),
+        governance: GovernanceV1 {
+            status: GovernanceStatus::Accepted,
+            proposed_at: "2026-01-01".into(),
+            decided_at: Some("2026-01-02".into()),
+            prior_frontier: None,
+            actors: vec![GovernanceActorV1 {
+                id: "architecture-team".into(),
+                role: "owner".into(),
+            }],
+        },
+        context: ContextV1 {
+            problem: "Opaque prose cannot be folded deterministically".into(),
+            prior_state: vec![],
+            constraints: vec![NamedStatementV1 {
+                id: "closed-schema".into(),
+                statement: "Every authoritative field is typed".into(),
+            }],
+        },
+        drivers: vec![DecisionDriverV1 {
+            id: "replay".into(),
+            statement: "History must replay".into(),
+            priority: DriverPriority::Required,
+        }],
+        options: vec![DecisionOptionV1 {
+            id: "typed-event".into(),
+            title: "Typed event".into(),
+            description: "Use a closed event schema".into(),
+            disposition: OptionDisposition::Selected,
+            reasons: vec![OptionReasonV1 {
+                driver: "replay".into(),
+                assessment: DriverAssessment::Satisfies,
+                explanation: "Typed events replay".into(),
+            }],
+        }],
+        outcome: DecisionOutcomeV1 {
+            claims: vec![ClaimEffectV1::Declare {
+                declaration: ClaimDeclarationV1 {
+                    claim_id: "decision.event.authority".into(),
+                    statement: statement.into(),
+                    statement_digest: statement_digest(statement),
+                },
+            }],
+        },
+        consequences: ConsequencesV1 {
+            positive: vec![ConsequenceV1 {
+                id: "reproducible".into(),
+                statement: "Projection is reproducible".into(),
+                caused_by: vec!["decision.event.authority".into()],
+            }],
+            negative: vec![],
+            risks: vec![],
+        },
+        verification: VerificationPlanV1 {
+            obligations: vec![VerificationObligationV1 {
+                id: "validate-events".into(),
+                subject_claims: vec!["decision.event.authority".into()],
+                method: VerificationMethodV1::Command {
+                    command: "cladrs validate".into(),
+                },
+                expected: VerificationExpectedV1 {
+                    exit_status: Some(0),
+                    statement: None,
+                },
+                interpretation: "The event history validates".into(),
+            }],
+        },
+        relationships: RelationshipsV1 {
+            supersedes: vec![],
+            depends_on: vec![],
+        },
+        sources: vec![DecisionSourceV1 {
+            id: "design".into(),
+            kind: "repository-path".into(),
+            locator: "doc/design.md".into(),
+            relevance: "Defines the event contract".into(),
+        }],
+        honest_scope: vec![LimitationV1 {
+            id: "implementation-truth".into(),
+            statement: "A decision does not prove implementation conformance".into(),
+        }],
+    })
+}
+
+#[test]
+fn authoritative_init_is_explicit_idempotent_and_non_destructive() {
+    let temp = assert_fs::TempDir::new().unwrap();
+    adrs()
+        .current_dir(temp.path())
+        .args(["init", "--authoritative"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("doc/adr-events"));
+    temp.child("adrs.toml")
+        .assert(predicate::str::contains("mode = \"authoritative\""));
+    temp.child("doc/adr-events")
+        .assert(predicate::path::is_dir());
+    temp.child("doc/adr").assert(predicate::path::is_dir());
+
+    adrs()
+        .current_dir(temp.path())
+        .args(["init", "--authoritative"])
+        .assert()
+        .success();
+    adrs()
+        .current_dir(temp.path())
+        .arg("validate")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("contains no *.adr.yaml events"));
+
+    let legacy = assert_fs::TempDir::new().unwrap();
+    adrs()
+        .current_dir(legacy.path())
+        .arg("init")
+        .assert()
+        .success();
+    adrs()
+        .current_dir(legacy.path())
+        .args(["init", "--authoritative"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("refuses to overwrite"));
+}
+
+#[test]
+fn decision_event_schema_is_available_without_a_repository() {
+    let temp = assert_fs::TempDir::new().unwrap();
+    adrs()
+        .current_dir(temp.path())
+        .args(["schema", "decision-event/v1"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("adrs.decision/v1"))
+        .stdout(predicate::str::contains("additionalProperties"));
+    adrs()
+        .current_dir(temp.path())
+        .args(["schema", "unknown"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("unknown schema selector"));
+}
+
+#[test]
+fn authoritative_decision_validate_fold_render_end_to_end() {
+    let temp = assert_fs::TempDir::new().unwrap();
+    temp.child("adrs.toml")
+        .write_str(
+            "mode = \"ng\"\nadr_dir = \"doc/adr\"\n\n[claims]\nmode = \"authoritative\"\nevents_dir = \"doc/adr-events\"\nrender_dir = \"doc/adr\"\n",
+        )
+        .unwrap();
+    temp.child("doc/adr-events").create_dir_all().unwrap();
+    temp.child("doc/adr").create_dir_all().unwrap();
+    temp.child("doc/adr-events/0001-record-events.adr.yaml")
+        .write_str(&serde_json::to_string_pretty(&authoritative_fixture_event()).unwrap())
+        .unwrap();
+
+    adrs()
+        .current_dir(temp.path())
+        .arg("validate")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("validated 1 decision events"));
+
+    adrs()
+        .current_dir(temp.path())
+        .args(["fold", "--format", "json"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("decision.event.authority"));
+
+    adrs()
+        .current_dir(temp.path())
+        .arg("render")
+        .assert()
+        .success();
+    temp.child("doc/adr/0001-record-complete-decision-events.md")
+        .assert(predicate::path::exists());
+
+    adrs()
+        .current_dir(temp.path())
+        .args(["render", "--check"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("checked 1"));
+
+    adrs()
+        .current_dir(temp.path())
+        .args(["list", "--long", "--status", "accepted"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("ADR-0001"))
+        .stdout(predicate::str::contains("accepted"));
+
+    adrs()
+        .current_dir(temp.path())
+        .arg("doctor")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "authoritative decision history is healthy",
+        ));
+
+    temp.child("doc/adr/0001-record-complete-decision-events.md")
+        .write_str("drift")
+        .unwrap();
+    adrs()
+        .current_dir(temp.path())
+        .args(["render", "--check"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("generated Markdown drift"));
+
+    // Restore the generated file, then prove that an unowned Markdown file in
+    // the render directory cannot sit outside the validated event projection.
+    adrs()
+        .current_dir(temp.path())
+        .arg("render")
+        .assert()
+        .success();
+    temp.child("doc/adr/orphan.md")
+        .write_str("opaque prose")
+        .unwrap();
+    adrs()
+        .current_dir(temp.path())
+        .args(["render", "--check"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("unexpected entry"));
+
+    adrs()
+        .current_dir(temp.path())
+        .args(["status", "1", "accepted"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "does not yet mutate authoritative",
+        ));
+
+    temp.close().unwrap();
 }

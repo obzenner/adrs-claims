@@ -4,12 +4,12 @@
 
 ## Installation
 
-The MCP server is included by default since v0.6.1. A plain `cargo install adrs` includes it.
+The MCP server is included by default since v0.6.1. A plain `cargo install cladrs` includes it.
 
 For HTTP transport support (independent server mode):
 
 ```sh
-cargo install adrs --features mcp-http
+cargo install cladrs --features mcp-http
 ```
 
 ## Configuration
@@ -35,7 +35,7 @@ Add to your `claude_desktop_config.json`:
 For independent server operation:
 
 ```sh
-adrs mcp serve --http 127.0.0.1:3000
+cladrs mcp serve --http 127.0.0.1:3000
 ```
 
 Then configure Claude with:
@@ -66,7 +66,7 @@ initialization:
 Call `init_repository` (optionally with `nextgen: true` and/or a custom
 `adr_dir`) to bootstrap the repository, then use the other tools in the same
 session without restarting the server. Initialization operates only on the
-bound root. Like CLI `adrs init`, it is idempotent: an existing matching
+bound root. Like CLI `cladrs init`, it is idempotent: an existing matching
 config (`adrs.toml`, `.adrs.toml`, or `.adr-dir`) is left in place.
 
 ## Available Tools
@@ -157,19 +157,19 @@ Search ADRs for matching text.
 
 Initialize an ADR repository at the directory the server is bound to (its
 current working directory, or the path given with `-C`). This lets a client
-bootstrap a first-run repository without an interactive `adrs init` step. See
+bootstrap a first-run repository without an interactive `cladrs init` step. See
 [Empty-state bootstrap](#empty-state-bootstrap) below.
 
 The tool operates only on the bound root. It does not create parent
 directories, does not accept a per-call path, and is idempotent like CLI
-`adrs init`: an existing matching config (`adrs.toml`, `.adrs.toml`, or
+`cladrs init`: an existing matching config (`adrs.toml`, `.adrs.toml`, or
 `.adr-dir`) is left in place. `nextgen` does not convert a reused
 `.adr-dir` or `.adrs.toml` into `adrs.toml`.
 
 **Parameters:**
 - `nextgen` (optional): Initialize in NextGen mode (`adrs.toml`, YAML
   frontmatter). Defaults to `false` (compatible mode, `.adr-dir`). Equivalent
-  to `adrs --ng init`. When reuse applies, this flag does not choose or
+  to `cladrs --ng init`. When reuse applies, this flag does not choose or
   convert the existing file.
 - `adr_dir` (optional): ADR directory relative to the root (default `doc/adr`).
   Must be relative and stay within the root.
@@ -251,7 +251,7 @@ Run health checks on the ADR repository.
 **Parameters:** None
 
 **Returns:** Health report with issue counts, issue details, and
-`config_warnings` (the same non-fatal diagnostics CLI `adrs doctor` prints
+`config_warnings` (the same non-fatal diagnostics CLI `cladrs doctor` prints
 on stderr, such as both `adrs.toml` and `.adrs.toml` being present). Each
 issue includes severity (error/warning/info), rule ID, rule name, message,
 and location.

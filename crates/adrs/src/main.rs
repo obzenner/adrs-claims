@@ -1,6 +1,6 @@
-//! adrs - Architecture Decision Records CLI tool.
+//! cladrs - Architecture Decision Records CLI tool.
 
-use adrs_core::{ConfigSource, discover};
+use adrs_core::{ClaimsMode, Config, ConfigSource, discover};
 use anyhow::{Context, Result};
 use clap::builder::styling::{AnsiColor, Styles};
 use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
@@ -21,7 +21,7 @@ const STYLES: Styles = Styles::styled()
     .placeholder(AnsiColor::Cyan.on_default());
 
 #[derive(Parser)]
-#[command(name = "adrs")]
+#[command(name = "cladrs")]
 #[command(author, version)]
 #[command(styles = STYLES)]
 #[command(about = "Manage Architecture Decision Records")]
@@ -30,13 +30,13 @@ A command-line tool for creating and managing Architecture Decision Records (ADR
 
 Compatible with adr-tools repositories. Supports both Nygard and MADR 4.0.0 formats.")]
 #[command(after_help = "\
-Run `adrs <command> --help` for command details, or `adrs --help` for getting started, examples, environment variables, and configuration.")]
+Run `cladrs <command> --help` for command details, or `cladrs --help` for getting started, examples, environment variables, and configuration.")]
 #[command(after_long_help = concat!("\
 GETTING STARTED:
-  adrs init                    Create a new ADR repository
-  adrs new \"My Decision\"       Create your first ADR
-  adrs list                    View all ADRs
-  adrs doctor                  Check repository health
+  cladrs init                    Create a new ADR repository
+  cladrs new \"My Decision\"       Create your first ADR
+  cladrs list                    View all ADRs
+  cladrs doctor                  Check repository health
 
 FORMATS:
   nygard    Classic adr-tools format (default)
@@ -45,13 +45,21 @@ FORMATS:
 MODES:
   Compatible (default)    Works with adr-tools, metadata in markdown
   NextGen (--ng)          YAML frontmatter for richer metadata (tags, custom fields)
+  Authoritative events    Closed whole-ADR YAML sources configured by [claims]
+
+AUTHORITATIVE EVENTS:
+  cladrs init --authoritative       Initialize event and render directories
+  cladrs schema decision-event/v1  Print the closed JSON Schema
+  cladrs validate                   Validate and replay complete event history
+  cladrs fold --format json         Print the current projection
+  cladrs render --check             Detect generated Markdown drift
 
 EXAMPLES:
-  adrs init                                      Initialize repository
-  adrs new --format madr \"Use PostgreSQL\"       Create MADR-format ADR
-  adrs new --supersedes 2 \"Use MySQL instead\"   Supersede an ADR
-  adrs link 3 Amends 1                          Link two ADRs (auto-derives reverse)
-  adrs generate toc > doc/adr/README.md         Generate table of contents
+  cladrs init                                      Initialize repository
+  cladrs new --format madr \"Use PostgreSQL\"       Create MADR-format ADR
+  cladrs new --supersedes 2 \"Use MySQL instead\"   Supersede an ADR
+  cladrs link 3 Amends 1                          Link two ADRs (auto-derives reverse)
+  cladrs generate toc > doc/adr/README.md         Generate table of contents
 
 ENVIRONMENT VARIABLES:
   ADR_DIRECTORY    Override the ADR directory (default: doc/adr)
@@ -60,7 +68,7 @@ ENVIRONMENT VARIABLES:
 CONFIGURATION:
   adrs.toml (or .adrs.toml if adrs.toml is absent) is discovered by walking up
   from the current directory. If both files exist, adrs.toml is used and a warning
-  is printed. A global config is also read from $XDG_CONFIG_HOME/adrs/config.toml
+  is printed. A global config is also read from $XDG_CONFIG_HOME/cladrs/config.toml
   (~/.config/adrs/config.toml on Linux/macOS, %APPDATA%/adrs/config.toml on Windows).
 
   Compatible mode (default): metadata stored in the markdown body (adr-tools compatible).
@@ -81,7 +89,7 @@ CONFIGURATION:
     warnings_as_errors = false   # exit 1 on warnings too (default: false)
 
 Version:       ", env!("CARGO_PKG_VERSION"), "
-Documentation: https://joshrotenberg.com/adrs/"))]
+Documentation: https://joshrotenberg.com/cladrs/"))]
 struct Cli {
     /// Enable NextGen mode with YAML frontmatter for richer metadata
     #[arg(
@@ -104,30 +112,45 @@ enum Commands {
     /// Initialize a new ADR repository
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs init                    Initialize in doc/adr (default)
-  adrs init docs/decisions     Use custom directory
-  adrs --ng init               Initialize with NextGen mode (YAML frontmatter)
+  cladrs init                    Initialize in doc/adr (default)
+  cladrs init docs/decisions     Use custom directory
+  cladrs --ng init               Initialize with NextGen mode (YAML frontmatter)
+  cladrs init --authoritative    Initialize closed whole-ADR event sources
 
 Creates the ADR directory and an initial ADR documenting the use of ADRs.
+Authoritative initialization instead creates an empty event source directory;
+add a complete event conforming to `cladrs schema decision-event/v1`.
 If ADRs already exist in the directory, they are preserved.")]
     Init {
         /// Directory to store ADRs [default: doc/adr, or the configured adr_dir]
         directory: Option<PathBuf>,
+
+        /// Initialize a closed whole-ADR authoritative event repository
+        #[arg(long)]
+        authoritative: bool,
+
+        /// Authoritative event source directory
+        #[arg(long, requires = "authoritative")]
+        events_dir: Option<PathBuf>,
+
+        /// Generated Markdown directory
+        #[arg(long, requires = "authoritative")]
+        render_dir: Option<PathBuf>,
     },
 
     /// Create a new ADR
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs new \"Use PostgreSQL for persistence\"      Basic ADR
-  adrs new --format madr \"Use React\"             MADR format with structured sections
-  adrs new --supersedes 2 \"Use MySQL instead\"    Supersede ADR 2
-  adrs new --link \"2:Amends:Amended by\" \"...\"    Create with link to ADR 2
-  adrs new --status accepted \"Already decided\"   Start with accepted status
-  adrs new --no-edit \"Quick note\"                Create without opening editor
+  cladrs new \"Use PostgreSQL for persistence\"      Basic ADR
+  cladrs new --format madr \"Use React\"             MADR format with structured sections
+  cladrs new --supersedes 2 \"Use MySQL instead\"    Supersede ADR 2
+  cladrs new --link \"2:Amends:Amended by\" \"...\"    Create with link to ADR 2
+  cladrs new --status accepted \"Already decided\"   Start with accepted status
+  cladrs new --no-edit \"Quick note\"                Create without opening editor
 
 NEXTGEN MODE (--ng):
-  adrs --ng new -t api,security \"Auth Design\"   Create with tags (requires --ng)
-  adrs --ng new \"My Decision\"                   Enable YAML frontmatter metadata
+  cladrs --ng new -t api,security \"Auth Design\"   Create with tags (requires --ng)
+  cladrs --ng new \"My Decision\"                   Enable YAML frontmatter metadata
 
 LINK FORMAT:
   The --link option uses format: TARGET:KIND:REVERSE_KIND
@@ -190,17 +213,17 @@ LINK FORMAT:
     /// List all ADRs
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs list                              List all ADRs (default format)
-  adrs list -l                           Detailed view with status and date
-  adrs list --status accepted            Show only accepted ADRs
-  adrs list --since 2024-01-01           ADRs created since Jan 1, 2024
-  adrs list --until 2024-06-30           ADRs created before July 2024
-  adrs list --tag security               Filter by tag (requires --ng mode)
-  adrs list --decider \"Alice\"            Filter by decision maker (MADR)
+  cladrs list                              List all ADRs (default format)
+  cladrs list -l                           Detailed view with status and date
+  cladrs list --status accepted            Show only accepted ADRs
+  cladrs list --since 2024-01-01           ADRs created since Jan 1, 2024
+  cladrs list --until 2024-06-30           ADRs created before July 2024
+  cladrs list --tag security               Filter by tag (requires --ng mode)
+  cladrs list --decider \"Alice\"            Filter by decision maker (MADR)
 
 COMBINING FILTERS:
-  adrs list -l --status accepted --since 2024-01-01
-  adrs list --tag api --status proposed")]
+  cladrs list -l --status accepted --since 2024-01-01
+  cladrs list --tag api --status proposed")]
     List {
         /// Filter by status (e.g., proposed, accepted, deprecated, superseded)
         #[arg(short, long, value_name = "STATUS")]
@@ -230,10 +253,10 @@ COMBINING FILTERS:
     /// Search ADRs for matching content
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs search postgres                   Search all content for 'postgres'
-  adrs search -t database                Search titles only
-  adrs search --status accepted auth     Search accepted ADRs for 'auth'
-  adrs search -c PostgreSQL              Case-sensitive search
+  cladrs search postgres                   Search all content for 'postgres'
+  cladrs search -t database                Search titles only
+  cladrs search --status accepted auth     Search accepted ADRs for 'auth'
+  cladrs search -c PostgreSQL              Case-sensitive search
 
 TIPS:
   - Search is case-insensitive by default
@@ -259,12 +282,12 @@ TIPS:
     /// Link two ADRs together
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs link 3 Supersedes 1               ADR 3 supersedes ADR 1
-  adrs link 5 Amends 2                   ADR 5 amends ADR 2
-  adrs link 4 \"Relates to\" 3             ADR 4 relates to ADR 3
+  cladrs link 3 Supersedes 1               ADR 3 supersedes ADR 1
+  cladrs link 5 Amends 2                   ADR 5 amends ADR 2
+  cladrs link 4 \"Relates to\" 3             ADR 4 relates to ADR 3
 
 CUSTOM REVERSE LINK:
-  adrs link 3 Extends 1 \"Extended by\"    Specify custom reverse link
+  cladrs link 3 Extends 1 \"Extended by\"    Specify custom reverse link
 
 COMMON LINK TYPES (reverse auto-derived):
   Supersedes    ->  Superseded by
@@ -289,11 +312,11 @@ The reverse link is automatically added to the target ADR.")]
     /// Change an ADR's status
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs status 3 accepted                 Mark ADR 3 as accepted
-  adrs status 2 deprecated               Mark ADR 2 as deprecated
-  adrs status 1 superseded --by 5        Mark ADR 1 as superseded by ADR 5
-  adrs status 4 rejected                 Mark ADR 4 as rejected
-  adrs status 3 \"In Review\"              Use custom status
+  cladrs status 3 accepted                 Mark ADR 3 as accepted
+  cladrs status 2 deprecated               Mark ADR 2 as deprecated
+  cladrs status 1 superseded --by 5        Mark ADR 1 as superseded by ADR 5
+  cladrs status 4 rejected                 Mark ADR 4 as rejected
+  cladrs status 3 \"In Review\"              Use custom status
 
 STANDARD STATUSES:
   proposed      Initial state (default for new ADRs)
@@ -318,9 +341,9 @@ Note: Use --by with 'superseded' to create a link to the replacing ADR.")]
     /// Repair a duplicate or misassigned ADR number
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs renumber 3 4                          Move ADR 3 to ADR 4
-  adrs renumber 3 4 --dry-run                Preview the change without writing
-  adrs renumber 3 5 --file doc/adr/0003-b.md Pick one of two ADRs numbered 3
+  cladrs renumber 3 4                          Move ADR 3 to ADR 4
+  cladrs renumber 3 4 --dry-run                Preview the change without writing
+  cladrs renumber 3 5 --file doc/adr/0003-b.md Pick one of two ADRs numbered 3
 
 WHAT IT REWRITES:
   The filename, the record's own frontmatter `number` (nextgen mode) and H1
@@ -356,9 +379,9 @@ DUPLICATE NUMBERS:
     /// Check repository health
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs doctor                                Run all health checks
-  adrs doctor --ignore ADR011                Suppress a specific rule for this run
-  adrs doctor --warnings-as-errors           Exit 1 on warnings too, not just errors
+  cladrs doctor                                Run all health checks
+  cladrs doctor --ignore ADR011                Suppress a specific rule for this run
+  cladrs doctor --warnings-as-errors           Exit 1 on warnings too, not just errors
 
 WHAT IT CHECKS:
   Per-file lint rules (title format, required sections, dates) and
@@ -373,7 +396,7 @@ CONFIGURATION:
   [doctor].ignore in adrs.toml lists rule IDs/names to suppress permanently;
   --ignore flags on the command line merge with (do not replace) that list.
   [doctor].warnings_as_errors in adrs.toml, or --warnings-as-errors on the
-  command line, makes 'adrs doctor' exit with status 1 when there are
+  command line, makes 'cladrs doctor' exit with status 1 when there are
   warnings, not just errors.")]
     Doctor {
         /// Ignore a rule by ID or name (repeatable); merged with [doctor].ignore in adrs.toml
@@ -383,6 +406,29 @@ CONFIGURATION:
         /// Exit with status 1 if there are warnings, not just errors
         #[arg(long)]
         warnings_as_errors: bool,
+    },
+
+    /// Print a machine-readable schema
+    Schema {
+        /// Schema selector (currently decision-event/v1)
+        selector: String,
+    },
+
+    /// Validate all authoritative whole-ADR decision events
+    Validate,
+
+    /// Fold authoritative decision events into a deterministic projection
+    Fold {
+        /// Projection output format
+        #[arg(long, value_enum, default_value_t = FoldFormat::Json)]
+        format: FoldFormat,
+    },
+
+    /// Render canonical Markdown from authoritative decision events
+    Render {
+        /// Fail if generated Markdown is absent or stale; write nothing
+        #[arg(long)]
+        check: bool,
     },
 
     /// Generate documentation
@@ -412,14 +458,14 @@ CONFIGURATION:
     /// Generate shell completions
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs completions bash > ~/.bash_completion.d/adrs
-  adrs completions zsh > ~/.zfunc/_adrs
-  adrs completions fish > ~/.config/fish/completions/adrs.fish
-  adrs completions powershell > _adrs.ps1
+  cladrs completions bash > ~/.bash_completion.d/cladrs
+  cladrs completions zsh > ~/.zfunc/_cladrs
+  cladrs completions fish > ~/.config/fish/completions/cladrs.fish
+  cladrs completions powershell > _cladrs.ps1
 
 BASH:
   Add to ~/.bashrc:
-    source ~/.bash_completion.d/adrs
+    source ~/.bash_completion.d/cladrs
 
 ZSH:
   Add to ~/.zshrc (before compinit):
@@ -454,8 +500,8 @@ USAGE WITH CLAUDE:
   Add to your Claude Desktop config (claude_desktop_config.json):
   {
     \"mcpServers\": {
-      \"adrs\": {
-        \"command\": \"adrs\",
+      \"cladrs\": {
+        \"command\": \"cladrs\",
         \"args\": [\"mcp\", \"serve\"],
         \"cwd\": \"/path/to/your/project\"
       }
@@ -479,9 +525,9 @@ enum McpCommands {
     /// Start the MCP server
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs mcp serve                         Start on stdio (for Claude Desktop)
-  adrs mcp serve --read-only             Register only the 11 read tools
-  adrs mcp serve --http 127.0.0.1:3000   Start HTTP server (requires mcp-http feature)
+  cladrs mcp serve                         Start on stdio (for Claude Desktop)
+  cladrs mcp serve --read-only             Register only the 11 read tools
+  cladrs mcp serve --http 127.0.0.1:3000   Start HTTP server (requires mcp-http feature)
 
 STDIO MODE (default):
   Claude Desktop spawns this process. Server lifecycle tied to Claude session.
@@ -504,6 +550,11 @@ Build with HTTP support:
     },
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, ValueEnum)]
+enum FoldFormat {
+    Json,
+}
+
 /// Shell types for completion generation
 #[derive(Copy, Clone, PartialEq, Eq, ValueEnum)]
 enum ShellArg {
@@ -524,11 +575,11 @@ enum GenerateCommands {
     /// Generate a table of contents
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs generate toc                      Generate markdown TOC
-  adrs generate toc > doc/adr/README.md  Save to README
-  adrs generate toc --ordered            Use numbered list (1. 2. 3.)
-  adrs generate toc --prefix ./          Adjust link paths
-  adrs generate toc --intro header.md    Prepend content from file")]
+  cladrs generate toc                      Generate markdown TOC
+  cladrs generate toc > doc/adr/README.md  Save to README
+  cladrs generate toc --ordered            Use numbered list (1. 2. 3.)
+  cladrs generate toc --prefix ./          Adjust link paths
+  cladrs generate toc --intro header.md    Prepend content from file")]
     Toc {
         /// Use ordered list (1. 2. 3.)
         #[arg(short, long)]
@@ -550,11 +601,11 @@ EXAMPLES:
     /// Generate a Graphviz graph
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs generate graph                    Generate DOT format graph
-  adrs generate graph | dot -Tpng > g.png  Render as PNG
-  adrs generate graph --prefix https://example.com/adr/
+  cladrs generate graph                    Generate DOT format graph
+  cladrs generate graph | dot -Tpng > g.png  Render as PNG
+  cladrs generate graph --prefix https://example.com/adr/
                                          Add URLs to nodes
-  adrs generate graph -e html            Use .html extension for links")]
+  cladrs generate graph -e html            Use .html extension for links")]
     Graph {
         /// Prefix for node URLs
         #[arg(short, long, value_name = "PREFIX")]
@@ -568,9 +619,9 @@ EXAMPLES:
     /// Generate an mdbook
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs generate book                     Generate in ./book directory
-  adrs generate book -o docs/adr-book    Custom output directory
-  adrs generate book -t \"Our ADRs\"       Set book title
+  cladrs generate book                     Generate in ./book directory
+  cladrs generate book -o docs/adr-book    Custom output directory
+  cladrs generate book -t \"Our ADRs\"       Set book title
   cd book && mdbook serve                Preview the generated book")]
     Book {
         /// Output directory [default: book]
@@ -592,19 +643,19 @@ enum ExportCommands {
     /// Export ADRs to JSON-ADR format
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs export json                       Export all ADRs as JSON array
-  adrs export json --pretty              Pretty-printed JSON output
-  adrs export json 3                     Export only ADR 3
-  adrs export json --dir ./adrs          Export from directory (no repo needed)
+  cladrs export json                       Export all ADRs as JSON array
+  cladrs export json --pretty              Pretty-printed JSON output
+  cladrs export json 3                     Export only ADR 3
+  cladrs export json --dir ./cladrs          Export from directory (no repo needed)
 
 FOR DOCUMENTATION/CATALOGS:
-  adrs export json --metadata-only       Export metadata without full content
-  adrs export json --base-url https://github.com/org/repo/blob/main/doc/adr
+  cladrs export json --metadata-only       Export metadata without full content
+  cladrs export json --base-url https://github.com/org/repo/blob/main/doc/adr
                                          Include source URLs in export
 
 PIPING:
-  adrs export json --pretty > adrs.json  Save to file
-  adrs export json | jq '.[] | .title'   Process with jq")]
+  cladrs export json --pretty > cladrs.json  Save to file
+  cladrs export json | jq '.[] | .title'   Process with jq")]
     Json {
         /// Export a single ADR by number
         #[arg(value_name = "NUMBER")]
@@ -633,15 +684,15 @@ enum ImportCommands {
     /// Import ADRs from JSON-ADR format
     #[command(after_long_help = "\
 EXAMPLES:
-  adrs import json adrs.json             Import from JSON file
-  adrs import json --dry-run adrs.json   Preview without writing files
-  adrs import json --overwrite adrs.json Replace existing ADRs
-  cat adrs.json | adrs import json -     Import from stdin
+  cladrs import json cladrs.json             Import from JSON file
+  cladrs import json --dry-run cladrs.json   Preview without writing files
+  cladrs import json --overwrite cladrs.json Replace existing ADRs
+  cat cladrs.json | cladrs import json -     Import from stdin
 
 MERGING REPOSITORIES:
-  adrs import json --renumber external.json
+  cladrs import json --renumber external.json
                                          Append ADRs with new numbers
-  adrs import json --renumber --dry-run external.json
+  cladrs import json --renumber --dry-run external.json
                                          Preview renumbering
 
 OPTIONS:
@@ -702,7 +753,27 @@ fn main() -> Result<()> {
         .unwrap_or_else(|| std::env::current_dir().unwrap_or_default());
 
     match cli.command {
-        Commands::Init { directory } => commands::init(&start_dir, directory, cli.ng),
+        Commands::Init {
+            directory,
+            authoritative,
+            events_dir,
+            render_dir,
+        } => {
+            if authoritative {
+                if directory.is_some() || cli.ng {
+                    anyhow::bail!(
+                        "authoritative init uses --events-dir/--render-dir and implies NextGen mode"
+                    );
+                }
+                commands::init_authoritative(
+                    &start_dir,
+                    events_dir.unwrap_or_else(|| PathBuf::from("doc/adr-events")),
+                    render_dir.unwrap_or_else(|| PathBuf::from("doc/adr")),
+                )
+            } else {
+                commands::init(&start_dir, directory, cli.ng)
+            }
+        }
         Commands::New {
             title,
             supersedes,
@@ -718,6 +789,7 @@ fn main() -> Result<()> {
             no_edit,
         } => {
             let discovered = discover_or_error(&start_dir, cli.working_dir.is_some())?;
+            reject_authoritative_mutation(&discovered.config, "new")?;
             commands::new(
                 &discovered.root,
                 cli.ng,
@@ -738,6 +810,7 @@ fn main() -> Result<()> {
         }
         Commands::Edit { adr } => {
             let discovered = discover_or_error(&start_dir, cli.working_dir.is_some())?;
+            reject_authoritative_mutation(&discovered.config, "edit")?;
             commands::edit(&discovered.root, &adr)
         }
         Commands::List {
@@ -749,7 +822,22 @@ fn main() -> Result<()> {
             long,
         } => {
             let discovered = discover_or_error(&start_dir, cli.working_dir.is_some())?;
-            commands::list(&discovered.root, status, since, until, decider, tag, long)
+            if discovered.config.claims.mode == ClaimsMode::Authoritative {
+                commands::list_decisions(
+                    &discovered.root,
+                    &discovered.config,
+                    commands::DecisionListOptions {
+                        status: status.as_deref(),
+                        since: since.as_deref(),
+                        until: until.as_deref(),
+                        decider: decider.as_deref(),
+                        tag: tag.as_deref(),
+                        long,
+                    },
+                )
+            } else {
+                commands::list(&discovered.root, status, since, until, decider, tag, long)
+            }
         }
         Commands::Search {
             query,
@@ -767,6 +855,7 @@ fn main() -> Result<()> {
             reverse_link,
         } => {
             let discovered = discover_or_error(&start_dir, cli.working_dir.is_some())?;
+            reject_authoritative_mutation(&discovered.config, "link")?;
             commands::link(
                 &discovered.root,
                 source,
@@ -777,6 +866,7 @@ fn main() -> Result<()> {
         }
         Commands::Status { adr, status, by } => {
             let discovered = discover_or_error(&start_dir, cli.working_dir.is_some())?;
+            reject_authoritative_mutation(&discovered.config, "status")?;
             commands::status(&discovered.root, adr, &status, by)
         }
         Commands::Renumber {
@@ -786,6 +876,7 @@ fn main() -> Result<()> {
             file,
         } => {
             let discovered = discover_or_error(&start_dir, cli.working_dir.is_some())?;
+            reject_authoritative_mutation(&discovered.config, "renumber")?;
             let file = file.map(|f| resolve_cli_path(cli.working_dir.as_deref(), f));
             commands::renumber(&discovered.root, from, to, file.as_deref(), dry_run)
         }
@@ -814,13 +905,39 @@ fn main() -> Result<()> {
             warnings_as_errors,
         } => {
             let discovered = discover_or_error(&start_dir, cli.working_dir.is_some())?;
-            commands::doctor(
-                &discovered.root,
-                cli.ng,
-                ignore,
-                warnings_as_errors,
-                discovered.shadowed_toml.is_some(),
-            )
+            if discovered.config.claims.mode == ClaimsMode::Authoritative {
+                if !ignore.is_empty() || warnings_as_errors {
+                    anyhow::bail!(
+                        "legacy doctor flags --ignore and --warnings-as-errors do not apply to authoritative event validation"
+                    );
+                }
+                commands::doctor_decisions(&discovered.root, &discovered.config)
+            } else {
+                commands::doctor(
+                    &discovered.root,
+                    cli.ng,
+                    ignore,
+                    warnings_as_errors,
+                    discovered.shadowed_toml.is_some(),
+                )
+            }
+        }
+        Commands::Schema { selector } => commands::decision_schema(&selector),
+        Commands::Validate => {
+            let discovered = discover_or_error(&start_dir, cli.working_dir.is_some())?;
+            commands::validate_decisions(&discovered.root, &discovered.config)
+        }
+        Commands::Fold { format } => {
+            let discovered = discover_or_error(&start_dir, cli.working_dir.is_some())?;
+            match format {
+                FoldFormat::Json => {
+                    commands::fold_decisions_json(&discovered.root, &discovered.config)
+                }
+            }
+        }
+        Commands::Render { check } => {
+            let discovered = discover_or_error(&start_dir, cli.working_dir.is_some())?;
+            commands::render_decisions(&discovered.root, &discovered.config, check)
         }
         Commands::Generate { command } => {
             let discovered = discover_or_error(&start_dir, cli.working_dir.is_some())?;
@@ -945,7 +1062,7 @@ fn main() -> Result<()> {
                 ShellArg::Elvish => Shell::Elvish,
             };
             let mut cmd = Cli::command();
-            generate(shell, &mut cmd, "adrs", &mut io::stdout());
+            generate(shell, &mut cmd, "cladrs", &mut io::stdout());
             Ok(())
         }
         #[cfg(all(feature = "mcp", not(feature = "mcp-http")))]
@@ -989,54 +1106,54 @@ fn print_cheatsheet() {
 ==============
 
 GETTING STARTED
-  adrs init                              Create ADR repository in doc/adr
-  adrs init docs/decisions               Use custom directory
-  adrs --ng init                         Enable NextGen mode (YAML frontmatter)
+  cladrs init                              Create ADR repository in doc/adr
+  cladrs init docs/decisions               Use custom directory
+  cladrs --ng init                         Enable NextGen mode (YAML frontmatter)
 
 CREATING ADRs
-  adrs new "Use PostgreSQL"              Create new ADR (opens editor)
-  adrs new --no-edit "Quick Decision"    Create without editor (CI/scripts)
-  adrs new --format madr "..."           Use MADR format
-  adrs new --status accepted "..."       Start as accepted
-  adrs --ng new -t api,db "..."          Add tags (requires --ng)
+  cladrs new "Use PostgreSQL"              Create new ADR (opens editor)
+  cladrs new --no-edit "Quick Decision"    Create without editor (CI/scripts)
+  cladrs new --format madr "..."           Use MADR format
+  cladrs new --status accepted "..."       Start as accepted
+  cladrs --ng new -t api,db "..."          Add tags (requires --ng)
 
 SUPERSEDING & LINKING
-  adrs new --supersedes 2 "Use MySQL"    Create ADR that supersedes #2
-  adrs link 3 Supersedes 1               Link: ADR 3 supersedes ADR 1
-  adrs link 3 Amends 1                   Link: ADR 3 amends ADR 1
-  adrs link 3 "Relates to" 2             Symmetric relationship
+  cladrs new --supersedes 2 "Use MySQL"    Create ADR that supersedes #2
+  cladrs link 3 Supersedes 1               Link: ADR 3 supersedes ADR 1
+  cladrs link 3 Amends 1                   Link: ADR 3 amends ADR 1
+  cladrs link 3 "Relates to" 2             Symmetric relationship
 
 MANAGING STATUS
-  adrs status 3 accepted                 Mark as accepted
-  adrs status 2 deprecated               Mark as deprecated
-  adrs status 1 superseded --by 3        Mark as superseded by ADR 3
+  cladrs status 3 accepted                 Mark as accepted
+  cladrs status 2 deprecated               Mark as deprecated
+  cladrs status 1 superseded --by 3        Mark as superseded by ADR 3
 
 VIEWING & SEARCHING
-  adrs list                              List all ADRs
-  adrs list -l                           Detailed view (status, date)
-  adrs list --status accepted            Filter by status
-  adrs list --since 2024-01-01           Filter by date
-  adrs search postgres                   Search content
-  adrs search -t database                Search titles only
+  cladrs list                              List all ADRs
+  cladrs list -l                           Detailed view (status, date)
+  cladrs list --status accepted            Filter by status
+  cladrs list --since 2024-01-01           Filter by date
+  cladrs search postgres                   Search content
+  cladrs search -t database                Search titles only
 
 GENERATING DOCS
-  adrs generate toc > doc/adr/README.md  Create table of contents
-  adrs generate graph | dot -Tpng > g.png  Create relationship graph
-  adrs generate book                     Create mdbook
+  cladrs generate toc > doc/adr/README.md  Create table of contents
+  cladrs generate graph | dot -Tpng > g.png  Create relationship graph
+  cladrs generate book                     Create mdbook
 
 IMPORT/EXPORT
-  adrs export json --pretty > adrs.json  Export to JSON
-  adrs import json external.json         Import from JSON
-  adrs import json --renumber ext.json   Append with new numbers
-  adrs import json --dry-run ext.json    Preview import
+  cladrs export json --pretty > cladrs.json  Export to JSON
+  cladrs import json external.json         Import from JSON
+  cladrs import json --renumber ext.json   Append with new numbers
+  cladrs import json --dry-run ext.json    Preview import
 
 CONFIGURATION
-  adrs config                            Show current config
-  adrs doctor                            Check repository health
-  adrs template list                     Show available templates
+  cladrs config                            Show current config
+  cladrs doctor                            Check repository health
+  cladrs template list                     Show available templates
 
-For detailed help: adrs <command> --help
-Documentation: https://joshrotenberg.com/adrs/
+For detailed help: cladrs <command> --help
+Documentation: https://joshrotenberg.com/cladrs/
 "#
     );
 }
@@ -1072,15 +1189,24 @@ fn resolve_mcp_root(start_dir: &std::path::Path) -> PathBuf {
     }
 }
 
+fn reject_authoritative_mutation(config: &Config, command: &str) -> Result<()> {
+    if config.claims.mode == ClaimsMode::Authoritative {
+        anyhow::bail!(
+            "`cladrs {command}` does not yet mutate authoritative decision events; edit *.adr.yaml sources and run `cladrs validate` and `cladrs render`"
+        );
+    }
+    Ok(())
+}
+
 /// Discover config or return a helpful error.
 fn discover_or_error(
     start_dir: &std::path::Path,
     explicit_dir: bool,
 ) -> Result<adrs_core::DiscoveredConfig> {
     let discovered = discover(start_dir).context(if explicit_dir {
-        "No ADR repository found in the specified directory. Run 'adrs init' first."
+        "No ADR repository found in the specified directory. Run 'cladrs init' first."
     } else {
-        "No ADR repository found. Run 'adrs init' to create one, or use '-C' to specify a directory."
+        "No ADR repository found. Run 'cladrs init' to create one, or use '-C' to specify a directory."
     })?;
 
     if matches!(discovered.source, ConfigSource::Default)
@@ -1088,7 +1214,7 @@ fn discover_or_error(
         && !explicit_dir
     {
         anyhow::bail!(
-            "No ADR repository found. Run 'adrs init' to create one, or use '-C' to specify a directory."
+            "No ADR repository found. Run 'cladrs init' to create one, or use '-C' to specify a directory."
         );
     }
 

@@ -10,7 +10,7 @@ use predicates::prelude::*;
 use std::fs;
 
 fn adrs() -> Command {
-    cargo_bin_cmd!("adrs")
+    cargo_bin_cmd!("cladrs")
 }
 
 // ============================================================================

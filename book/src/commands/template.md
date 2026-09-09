@@ -5,7 +5,7 @@ Manage ADR templates.
 ## Usage
 
 ```
-adrs template <COMMAND>
+cladrs template <COMMAND>
 ```
 
 ## Subcommands
@@ -20,7 +20,7 @@ adrs template <COMMAND>
 List all available template formats and variants.
 
 ```sh
-adrs template list
+cladrs template list
 ```
 
 Output:
@@ -40,7 +40,7 @@ madr
 Display the content of a specific template.
 
 ```sh
-adrs template show <FORMAT> [--variant <VARIANT>]
+cladrs template show <FORMAT> [--variant <VARIANT>]
 ```
 
 ### Options
@@ -53,13 +53,13 @@ adrs template show <FORMAT> [--variant <VARIANT>]
 
 ```sh
 # Show default Nygard template (full variant)
-adrs template show nygard
+cladrs template show nygard
 
 # Show minimal MADR template
-adrs template show madr --variant minimal
+cladrs template show madr --variant minimal
 
 # Show bare template
-adrs template show nygard --variant bare
+cladrs template show nygard --variant bare
 ```
 
 ## Template Formats

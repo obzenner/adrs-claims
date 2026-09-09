@@ -5,7 +5,7 @@ Initialize a new ADR repository.
 ## Usage
 
 ```
-adrs init [OPTIONS] [DIRECTORY]
+cladrs init [OPTIONS] [DIRECTORY]
 ```
 
 ## Arguments
@@ -39,7 +39,7 @@ The `init` command creates:
 ### Basic Initialization
 
 ```sh
-adrs init
+cladrs init
 ```
 
 Creates:
@@ -53,7 +53,7 @@ doc/
 ### Custom Directory
 
 ```sh
-adrs init decisions
+cladrs init decisions
 ```
 
 Creates:
@@ -66,7 +66,7 @@ decisions/
 ### Nested Directory
 
 ```sh
-adrs init docs/architecture/decisions
+cladrs init docs/architecture/decisions
 ```
 
 Creates the full directory path.
@@ -74,7 +74,7 @@ Creates the full directory path.
 ### NextGen Mode
 
 ```sh
-adrs init --ng
+cladrs init --ng
 ```
 
 Writes `adrs.toml`, not `.adr-dir` or `.adrs.toml`, and creates the initial
@@ -95,7 +95,7 @@ status: accepted
 
 ## Re-initialization
 
-`adrs init` is idempotent: running it again in an already-initialized
+`cladrs init` is idempotent: running it again in an already-initialized
 repository succeeds and preserves existing ADRs.
 
 If `adrs.toml`, `.adrs.toml`, or `.adr-dir` is already present and its ADR

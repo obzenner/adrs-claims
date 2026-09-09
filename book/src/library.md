@@ -308,7 +308,7 @@ fn main() {
     match Repository::open(Path::new(".")) {
         Ok(repo) => { /* use repo */ }
         Err(Error::AdrDirNotFound) => {
-            eprintln!("ADR repository not found. Run 'adrs init' to create one.");
+            eprintln!("ADR repository not found. Run 'cladrs init' to create one.");
         }
         Err(e) => {
             eprintln!("Error: {}", e);

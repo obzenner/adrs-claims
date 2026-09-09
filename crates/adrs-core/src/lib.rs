@@ -82,6 +82,7 @@
 //! `export_json`, and `lint_repository`.
 
 mod config;
+pub mod decision;
 pub mod doctor;
 mod error;
 pub mod export;
@@ -93,8 +94,9 @@ mod template;
 mod types;
 
 pub use config::{
-    CONFIG_FILE, Config, ConfigMode, ConfigSource, DUPLICATE_TOML_CONFIG_MESSAGE, DiscoveredConfig,
-    HIDDEN_CONFIG_FILE, LEGACY_CONFIG_FILE, discover,
+    CONFIG_FILE, ClaimsConfig, ClaimsMode, Config, ConfigMode, ConfigSource,
+    DUPLICATE_TOML_CONFIG_MESSAGE, DiscoveredConfig, HIDDEN_CONFIG_FILE, LEGACY_CONFIG_FILE,
+    discover,
 };
 pub use error::{Error, Result};
 pub use export::{

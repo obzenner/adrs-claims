@@ -16,8 +16,8 @@ pub fn list() -> Result<()> {
     println!("  bare-minimal   Core sections only, empty (no guidance)");
     println!();
     println!("Usage:");
-    println!("  adrs new --format madr --variant minimal \"Title\"");
-    println!("  adrs template show madr --variant bare");
+    println!("  cladrs new --format madr --variant minimal \"Title\"");
+    println!("  cladrs template show madr --variant bare");
 
     Ok(())
 }

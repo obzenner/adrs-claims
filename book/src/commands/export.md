@@ -7,10 +7,10 @@ Export ADRs to different formats for integration with other tools.
 Export ADRs to JSON-ADR format, a machine-readable interchange format.
 
 ```bash
-adrs export json                  # All ADRs as JSON
-adrs export json --pretty         # Pretty-printed output
-adrs export json 5                # Single ADR by number
-adrs export json -d path/to/adrs  # Export from directory (no repo needed)
+cladrs export json                  # All ADRs as JSON
+cladrs export json --pretty         # Pretty-printed output
+cladrs export json 5                # Single ADR by number
+cladrs export json -d path/to/adrs  # Export from directory (no repo needed)
 ```
 
 ### Options
@@ -57,7 +57,7 @@ adrs export json -d path/to/adrs  # Export from directory (no repo needed)
 Use `--base-url` to add `source_uri` fields for referencing ADRs across repositories:
 
 ```bash
-adrs export json --metadata-only --base-url "https://github.com/org/repo/blob/main/doc/adr"
+cladrs export json --metadata-only --base-url "https://github.com/org/repo/blob/main/doc/adr"
 ```
 
 This produces lightweight exports that reference the source files:
@@ -71,7 +71,7 @@ Since a repo's source URL rarely changes, you can set it once in `adrs.toml` so 
 base_url = "https://github.com/org/repo/blob/main/doc/adr"
 ```
 
-With this config, `adrs export json` will include `source_uri` fields automatically. The `--base-url` CLI flag always takes precedence over the config value.
+With this config, `cladrs export json` will include `source_uri` fields automatically. The `--base-url` CLI flag always takes precedence over the config value.
 
 ```json
 {

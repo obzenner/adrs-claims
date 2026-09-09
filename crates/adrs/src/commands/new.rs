@@ -54,7 +54,7 @@ pub fn new(
         .map(|s| s.parse::<AdrStatus>().unwrap_or(AdrStatus::Proposed));
 
     let mut repo = Repository::open(root)
-        .context("ADR repository not found. Run 'adrs init' first.")?
+        .context("ADR repository not found. Run 'cladrs init' first.")?
         .with_template_format(template_format)
         .with_template_variant(template_variant);
 
@@ -108,7 +108,7 @@ pub fn new(
     if let Some(tag_list) = tags {
         if !is_ng {
             anyhow::bail!(
-                "Tags require --ng mode (YAML frontmatter). Use: adrs --ng new --tags ... or set mode = \"ng\" in adrs.toml"
+                "Tags require --ng mode (YAML frontmatter). Use: cladrs --ng new --tags ... or set mode = \"ng\" in adrs.toml"
             );
         }
         if !tag_list.is_empty() {
@@ -122,7 +122,7 @@ pub fn new(
     if deciders.is_some() || consulted.is_some() || informed.is_some() {
         if !is_ng {
             anyhow::bail!(
-                "--deciders/--consulted/--informed require --ng mode (YAML frontmatter). Use: adrs --ng new --deciders ... or set mode = \"ng\" in adrs.toml"
+                "--deciders/--consulted/--informed require --ng mode (YAML frontmatter). Use: cladrs --ng new --deciders ... or set mode = \"ng\" in adrs.toml"
             );
         }
         let mut changed = false;

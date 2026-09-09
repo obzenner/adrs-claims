@@ -5,7 +5,7 @@ Check the health of your ADR repository.
 ## Usage
 
 ```
-adrs doctor [OPTIONS]
+cladrs doctor [OPTIONS]
 ```
 
 ## Options
@@ -43,7 +43,7 @@ rather than ignoring the flag silently.
 ### Healthy Repository
 
 ```sh
-adrs doctor
+cladrs doctor
 ```
 
 Output:
@@ -55,7 +55,7 @@ No issues found. Your ADR repository is healthy!
 ### Repository with Issues
 
 ```sh
-adrs doctor
+cladrs doctor
 ```
 
 Output:
@@ -91,7 +91,7 @@ also fail on warnings. This allows using `doctor` in CI pipelines:
 
 ```yaml
 - name: Check ADR health
-  run: adrs doctor
+  run: cladrs doctor
 ```
 
 ## Configuration
@@ -158,7 +158,7 @@ repos:
 
 The hook uses `language: system`, so it expects `adrs` to already be on
 `PATH`. See [Installation](../installation.md) for ways to install it
-(`cargo install adrs`, a release binary, Homebrew, etc.).
+(`cargo install cladrs`, a release binary, Homebrew, etc.).
 
 The hook triggers on any staged `.md` file but always checks the whole
 repository, since `doctor`'s checks (numbering, links, superseded status)

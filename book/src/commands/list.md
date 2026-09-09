@@ -5,7 +5,7 @@ List Architecture Decision Records with optional filtering.
 ## Usage
 
 ```bash
-adrs list [OPTIONS]
+cladrs list [OPTIONS]
 ```
 
 ## Options
@@ -26,7 +26,7 @@ adrs list [OPTIONS]
 ### Basic Usage
 
 ```bash
-adrs list
+cladrs list
 ```
 
 Output (paths):
@@ -39,7 +39,7 @@ doc/adr/0003-api-versioning.md
 ### Detailed Output
 
 ```bash
-adrs list -l
+cladrs list -l
 ```
 
 Output:
@@ -54,26 +54,26 @@ Output:
 
 ```bash
 # Show accepted ADRs
-adrs list --status accepted -l
+cladrs list --status accepted -l
 
 # Show ADRs needing review
-adrs list --status proposed -l
+cladrs list --status proposed -l
 
 # Show superseded ADRs
-adrs list --status superseded -l
+cladrs list --status superseded -l
 ```
 
 ### Filter by Date
 
 ```bash
 # ADRs from 2024 onwards
-adrs list --since 2024-01-01 -l
+cladrs list --since 2024-01-01 -l
 
 # ADRs before 2024
-adrs list --until 2023-12-31 -l
+cladrs list --until 2023-12-31 -l
 
 # ADRs in a date range
-adrs list --since 2024-01-01 --until 2024-06-30 -l
+cladrs list --since 2024-01-01 --until 2024-06-30 -l
 ```
 
 ### Filter by Decision Maker
@@ -82,10 +82,10 @@ For ADRs using MADR format with decision-makers metadata:
 
 ```bash
 # Find ADRs decided by Alice (case-insensitive substring match)
-adrs list --decider alice -l
+cladrs list --decider alice -l
 
 # Find ADRs by team
-adrs list --decider "Security Team" -l
+cladrs list --decider "Security Team" -l
 ```
 
 ### Combined Filters
@@ -94,7 +94,7 @@ Multiple filters are AND'd together:
 
 ```bash
 # Accepted ADRs from 2024 decided by Alice
-adrs list --status accepted --since 2024-01-01 --decider alice -l
+cladrs list --status accepted --since 2024-01-01 --decider alice -l
 ```
 
 ## Output Format

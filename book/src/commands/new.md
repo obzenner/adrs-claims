@@ -5,7 +5,7 @@ Create a new Architecture Decision Record.
 ## Usage
 
 ```
-adrs new [OPTIONS] <TITLE>
+cladrs new [OPTIONS] <TITLE>
 ```
 
 ## Arguments
@@ -34,14 +34,14 @@ adrs new [OPTIONS] <TITLE>
 
 Creates a new ADR file with the next available number. Opens your `$EDITOR` to edit the document. The ADR is saved when you close the editor.
 
-To skip the editor by default for all `adrs new` invocations in a repository, set `no_edit = true` in `adrs.toml`. The `--no-edit` CLI flag takes precedence over the config setting.
+To skip the editor by default for all `cladrs new` invocations in a repository, set `no_edit = true` in `adrs.toml`. The `--no-edit` CLI flag takes precedence over the config setting.
 
 ## Examples
 
 ### Basic Usage
 
 ```sh
-adrs new "Use PostgreSQL for persistence"
+cladrs new "Use PostgreSQL for persistence"
 ```
 
 Creates `0002-use-postgresql-for-persistence.md` and opens it in your editor.
@@ -49,19 +49,19 @@ Creates `0002-use-postgresql-for-persistence.md` and opens it in your editor.
 ### With MADR Format
 
 ```sh
-adrs new --format madr "Use PostgreSQL for persistence"
+cladrs new --format madr "Use PostgreSQL for persistence"
 ```
 
 ### Minimal Template
 
 ```sh
-adrs new --variant minimal "Use PostgreSQL for persistence"
+cladrs new --variant minimal "Use PostgreSQL for persistence"
 ```
 
 ### With Initial Status
 
 ```sh
-adrs new --status Accepted "Use PostgreSQL for persistence"
+cladrs new --status Accepted "Use PostgreSQL for persistence"
 ```
 
 ### Custom Template File
@@ -69,7 +69,7 @@ adrs new --status Accepted "Use PostgreSQL for persistence"
 Use a custom template file for this ADR:
 
 ```sh
-adrs new --template ./templates/security-adr.md "Security Design Decision"
+cladrs new --template ./templates/security-adr.md "Security Design Decision"
 ```
 
 The `--template` flag takes precedence over `--format`/`--variant` and the
@@ -79,7 +79,7 @@ The `--template` flag takes precedence over `--format`/`--variant` and the
 ### Superseding an ADR
 
 ```sh
-adrs new --supersedes 2 "Use MySQL instead of PostgreSQL"
+cladrs new --supersedes 2 "Use MySQL instead of PostgreSQL"
 ```
 
 This creates a new ADR and:
@@ -90,7 +90,7 @@ This creates a new ADR and:
 ### Linking to Another ADR
 
 ```sh
-adrs new --link "2:Amends:Amended by" "Clarify database choice"
+cladrs new --link "2:Amends:Amended by" "Clarify database choice"
 ```
 
 The link format is `TARGET:KIND:REVERSE_KIND`:
@@ -107,18 +107,18 @@ Common link types:
 
 `--link` accepts a single link when creating an ADR (format
 `TARGET:KIND:REVERSE_KIND`). To attach additional links, create the ADR first
-and then use [`adrs link`](./link.md), whose arguments are
+and then use [`cladrs link`](./link.md), whose arguments are
 `SOURCE LINK TARGET [REVERSE_LINK]`:
 
 ```sh
-adrs new --link "2:Amends:Amended by" "Combined decision"
-adrs link 4 Extends 3 "Extended by"   # ADR 4 extends ADR 3
+cladrs new --link "2:Amends:Amended by" "Combined decision"
+cladrs link 4 Extends 3 "Extended by"   # ADR 4 extends ADR 3
 ```
 
 ### NextGen Mode with MADR
 
 ```sh
-adrs new --ng --format madr "Use PostgreSQL for persistence"
+cladrs new --ng --format madr "Use PostgreSQL for persistence"
 ```
 
 Creates an ADR with YAML frontmatter:

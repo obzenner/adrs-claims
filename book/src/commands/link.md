@@ -5,7 +5,7 @@ Link two Architecture Decision Records together.
 ## Usage
 
 ```
-adrs link [OPTIONS] <SOURCE> <LINK> <TARGET> [REVERSE_LINK]
+cladrs link [OPTIONS] <SOURCE> <LINK> <TARGET> [REVERSE_LINK]
 ```
 
 ## Arguments
@@ -34,7 +34,7 @@ Creates bidirectional links between two ADRs. The link is added to the status se
 ### Amends Relationship
 
 ```sh
-adrs link 3 "Amends" 1 "Amended by"
+cladrs link 3 "Amends" 1 "Amended by"
 ```
 
 Result in ADR #3:
@@ -58,13 +58,13 @@ Amended by [3. Clarify decision format](0003-clarify-decision-format.md)
 ### Extends Relationship
 
 ```sh
-adrs link 4 "Extends" 2 "Extended by"
+cladrs link 4 "Extends" 2 "Extended by"
 ```
 
 ### Custom Relationship
 
 ```sh
-adrs link 5 "Depends on" 3 "Dependency of"
+cladrs link 5 "Depends on" 3 "Dependency of"
 ```
 
 ## Common Link Types
@@ -79,15 +79,15 @@ adrs link 5 "Depends on" 3 "Dependency of"
 
 ## Superseding
 
-For superseding relationships, prefer using `adrs new --supersedes`:
+For superseding relationships, prefer using `cladrs new --supersedes`:
 
 ```sh
 # Instead of:
-adrs new "New approach"
-adrs link 3 "Supersedes" 2 "Superseded by"
+cladrs new "New approach"
+cladrs link 3 "Supersedes" 2 "Superseded by"
 
 # Use:
-adrs new --supersedes 2 "New approach"
+cladrs new --supersedes 2 "New approach"
 ```
 
 The `--supersedes` option also updates the target ADR's status to "Superseded".

@@ -5,8 +5,8 @@ Change an ADR's status.
 ## Usage
 
 ```bash
-adrs status <NUMBER> <STATUS>
-adrs status <NUMBER> superseded --by <NUMBER>
+cladrs status <NUMBER> <STATUS>
+cladrs status <NUMBER> superseded --by <NUMBER>
 ```
 
 ## Arguments
@@ -37,13 +37,13 @@ You can also use custom status values for your workflow (e.g., `draft`, `on-hold
 ### Accept a proposed ADR
 
 ```bash
-adrs status 5 accepted
+cladrs status 5 accepted
 ```
 
 ### Deprecate an ADR
 
 ```bash
-adrs status 3 deprecated
+cladrs status 3 deprecated
 ```
 
 ### Supersede an ADR
@@ -51,7 +51,7 @@ adrs status 3 deprecated
 When superseding, use `--by` to create a bidirectional link:
 
 ```bash
-adrs status 2 superseded --by 5
+cladrs status 2 superseded --by 5
 ```
 
 This updates ADR 2's status and creates links:
@@ -61,7 +61,7 @@ This updates ADR 2's status and creates links:
 ### Custom status
 
 ```bash
-adrs status 4 "on-hold"
+cladrs status 4 "on-hold"
 ```
 
 ## Notes

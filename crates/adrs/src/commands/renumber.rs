@@ -9,7 +9,7 @@ use std::path::Path;
 /// repository.
 pub fn renumber(root: &Path, from: u32, to: u32, file: Option<&Path>, dry_run: bool) -> Result<()> {
     let repo =
-        Repository::open(root).context("ADR repository not found. Run 'adrs init' first.")?;
+        Repository::open(root).context("ADR repository not found. Run 'cladrs init' first.")?;
 
     let result = repo
         .renumber(from, to, file, dry_run)

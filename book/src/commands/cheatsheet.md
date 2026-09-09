@@ -5,10 +5,10 @@ Show a quick reference for common ADR workflows.
 ## Usage
 
 ```
-adrs cheatsheet
+cladrs cheatsheet
 ```
 
-Alias: `adrs qr`
+Alias: `cladrs qr`
 
 ## Output
 
@@ -30,49 +30,49 @@ ADR Quick Reference
 ===================
 
 GETTING STARTED
-  adrs init                    Initialize ADR repository
-  adrs --ng init               Initialize with NextGen mode (YAML frontmatter)
+  cladrs init                    Initialize ADR repository
+  cladrs --ng init               Initialize with NextGen mode (YAML frontmatter)
 
 CREATING ADRS
-  adrs new "Title"             Create new ADR
-  adrs new --format madr       Use MADR 4.0.0 format
-  adrs new --variant minimal   Use minimal template
-  adrs --ng new -t tag1,tag2 "Title"  Add tags (NextGen mode)
-  adrs new --no-edit           Create without opening editor
+  cladrs new "Title"             Create new ADR
+  cladrs new --format madr       Use MADR 4.0.0 format
+  cladrs new --variant minimal   Use minimal template
+  cladrs --ng new -t tag1,tag2 "Title"  Add tags (NextGen mode)
+  cladrs new --no-edit           Create without opening editor
 
 SUPERSEDING AND LINKING
-  adrs new -s 2 "New title"    Supersede ADR #2
-  adrs link 3 Amends 1         Link ADR #3 amends #1
+  cladrs new -s 2 "New title"    Supersede ADR #2
+  cladrs link 3 Amends 1         Link ADR #3 amends #1
 
 MANAGING STATUS
-  adrs status 1 accepted       Accept ADR #1
-  adrs status 2 deprecated     Deprecate ADR #2
-  adrs status 3 superseded --by 4  Mark #3 superseded by #4
+  cladrs status 1 accepted       Accept ADR #1
+  cladrs status 2 deprecated     Deprecate ADR #2
+  cladrs status 3 superseded --by 4  Mark #3 superseded by #4
 
 VIEWING AND SEARCHING
-  adrs list                    List all ADRs
-  adrs list --status accepted  Filter by status
-  adrs search postgres         Search content
-  adrs search -t database      Search titles only
+  cladrs list                    List all ADRs
+  cladrs list --status accepted  Filter by status
+  cladrs search postgres         Search content
+  cladrs search -t database      Search titles only
 
 DOCUMENTATION
-  adrs generate toc            Generate table of contents
-  adrs generate graph          Generate Graphviz diagram
-  adrs generate book           Generate mdbook
+  cladrs generate toc            Generate table of contents
+  cladrs generate graph          Generate Graphviz diagram
+  cladrs generate book           Generate mdbook
 
 IMPORT/EXPORT
-  adrs export json             Export to JSON-ADR
-  adrs import json file.json   Import from JSON-ADR
+  cladrs export json             Export to JSON-ADR
+  cladrs import json file.json   Import from JSON-ADR
 
 CONFIGURATION
-  adrs config                  Show current config
-  adrs doctor                  Check repository health
+  cladrs config                  Show current config
+  cladrs doctor                  Check repository health
 
-More: adrs --help, adrs <command> --help
+More: cladrs --help, adrs <command> --help
 ```
 
 ## Tips
 
-- Run `adrs cheatsheet` whenever you need a quick reminder
+- Run `cladrs cheatsheet` whenever you need a quick reminder
 - Use `adrs <command> --help` for detailed command documentation
 - Full documentation at [joshrotenberg.com/adrs](https://joshrotenberg.com/adrs/)

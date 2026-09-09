@@ -32,6 +32,8 @@ globset.workspace = true
 # Linting (mdbook-lint integration)
 mdbook-lint-core = "0.14.4"
 mdbook-lint-rulesets = { version = "0.14.4", default-features = false, features = ["adr"] }
+sha2 = "0.10"
+schemars.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

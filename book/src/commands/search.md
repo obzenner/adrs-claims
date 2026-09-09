@@ -5,7 +5,7 @@ Search ADRs for matching content.
 ## Usage
 
 ```
-adrs search [OPTIONS] <QUERY>
+cladrs search [OPTIONS] <QUERY>
 ```
 
 ## Arguments
@@ -26,16 +26,16 @@ adrs search [OPTIONS] <QUERY>
 
 ```sh
 # Search all content for 'postgres'
-adrs search postgres
+cladrs search postgres
 
 # Search titles only
-adrs search -t database
+cladrs search -t database
 
 # Search accepted ADRs for 'auth'
-adrs search --status accepted auth
+cladrs search --status accepted auth
 
 # Case-sensitive search
-adrs search -c PostgreSQL
+cladrs search -c PostgreSQL
 ```
 
 ## Output
@@ -43,7 +43,7 @@ adrs search -c PostgreSQL
 Returns matching ADRs with their number, title, and status.
 
 ```
-$ adrs search database
+$ cladrs search database
 1: Use PostgreSQL for persistence (accepted)
 5: Add Redis for caching (proposed)
 ```
@@ -53,4 +53,4 @@ $ adrs search database
 - Search is case-insensitive by default
 - Searches both title and full content unless `-t` is used
 - Combine with `--status` to narrow results
-- Use quotes for multi-word searches: `adrs search "event sourcing"`
+- Use quotes for multi-word searches: `cladrs search "event sourcing"`
